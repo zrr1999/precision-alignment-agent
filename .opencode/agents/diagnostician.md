@@ -19,9 +19,8 @@ permission:
     "cmake*": allow
     "ninja*": allow
     "make*": allow
-    "uv pip install*": allow
-    "python*": allow
-    "pytest*": allow
+    "cd*": allow
+    "uv*": allow
     "git status": allow
     "git diff": allow
     "git log*": allow
@@ -73,13 +72,18 @@ ninja
 #### Installation into Virtual Environment
 After successful build, install the compiled artifacts:
 ```bash
+# Use uv to install into the virtual environment
+cd ${VENV_PATH}
 uv pip install {path_to_wheel_or_build_dir}
 ```
 
 **Installation verification**:
 ```bash
-python -c "import paddle; print(paddle.__version__); print(paddle.device.cuda.device_count())"
+# Use uv run with -p to specify the virtual environment
+uv run -p ${VENV_PATH} python -c "import paddle; print(paddle.__version__); print(paddle.device.cuda.device_count())"
 ```
+
+**Important**: Always use `uv run -p ${VENV_PATH} python` to explicitly specify which virtual environment to use. The `-p` flag takes the venv directory path (not the python binary path).
 
 Expected output should show:
 - Version: `0.0.0` (development build)
@@ -125,9 +129,9 @@ Expected output should show:
 ### 3. Functional Testing (CI/CE)
 
 #### Paddle Internal Unit Tests
-Run tests directly from the `test/` directory:
+Run tests directly from the `test/` directory using uv run:
 ```bash
-python test/legacy_test/test_{api_name}_op.py
+uv run -p ${VENV_PATH} python test/legacy_test/test_{api_name}_op.py
 ```
 
 **Test selection strategy**:
@@ -141,10 +145,9 @@ python test/legacy_test/test_{api_name}_op.py
 - `ERROR`: Test setup/teardown issue → check environment (GPU availability, dependencies)
 
 #### PaddleTest Repository Tests
-Run tests from the PaddleTest repository:
+Run tests from the PaddleTest repository using uv run:
 ```bash
-cd ${PADDLETEST_PATH}/framework/api/paddlebase
-pytest test_{api_name}.py -v
+cd ${PADDLETEST_PATH}/framework/api/paddlebase && uv run -p ${VENV_PATH} python -m pytest test_{api_name}.py -v
 ```
 
 **PaddleTest characteristics**:

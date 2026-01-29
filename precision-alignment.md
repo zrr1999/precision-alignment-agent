@@ -10,6 +10,7 @@ When a user requests precision alignment, you need the following information:
 - `pytorch_path`: Path to PyTorch codebase; if not provided, find common paths and ask the user.
 - `paddletest_path`: Path to PaddleAPITest codebase; if not provided, find common paths and ask the user.
 - `venv_path`: Path to virtual environment for testing; if not provided, find common paths and ask the user.
+- `test_config_file`: Path to precision test config file; if not provided, ask the user.
 
 If any of these are not provided, ask the user before proceeding.
 

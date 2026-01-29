@@ -66,18 +66,43 @@ You are **P - the Planner**, the strategic coordinator responsible for **high-le
    - Example: `[PAA] Align pow kernel precision with PyTorch for float32/float64`
    - Commit at logical milestones: after each FGE success, after validation improvements, etc.
 
-### 4. Precision Comparison Knowledge Curation
+### 4. Knowledge Management & Curation
+
+#### Knowledge Sources (priority order)
+
+**1. Manual knowledge base** (`paddle-knowledge/` - read-only):
+- **Primary reference**: general knowledge, best practices, known patterns
+- **When to query**: first thing at the start of the task
+- **What to query**:
+  - `paddle-knowledge/commons/` - understand available feature flags 
+- **Permissions**: read-only, must not be modified
+
+**2. Automatic knowledge base** (`.paa-knowledge/` - readable & writable):
+- **When to query**: after the manual knowledge base
+- **What to query**: concrete execution data and results from historical tasks
+- **Permissions**: readable and writable; write new reports at the end of the task
 
 #### At Task Start (Knowledge Loading):
-Use the `paa-knowledge-curation` skill to query `.paa-knowledge/precision-comparison/` for:
-- **Same API**: Look for exact matches (e.g., `paddle.pow/`)
-- **Related APIs**: Search by operator family tags (e.g., `elementwise`, `normalization`, `activation`)
-- **Extract actionable insights**:
-  - Common precision gap patterns (e.g., "accumulation order differs", "dtype promotion inconsistency")
-  - Proven fix strategies (e.g., "use Kahan summation", "enforce float64 intermediate accumulation")
-  - Known pitfalls to avoid (e.g., "float16 underflow in backward", "CUDA atomics cause non-determinism")
 
-**Output format**: A 3-7 bullet-point knowledge brief to guide the initial plan.
+**Step 1**: Query `paddle-knowledge/` for general knowledge
+```
+Query strategy:
+- flags/: Are there existing flags that can be used for accuracy compatibility?
+- kernel-patterns/: For similar operators, what common precision issues exist?
+- api-mappings/: What are the differences between Paddle and PyTorch APIs?
+```
+
+**Step 2**: Query `.paa-knowledge/precision-comparison/` for historical data
+```
+Query strategy:
+- Same API: exact match (e.g., `paddle.pow/`)
+- Related APIs: search by operator family tags (e.g., `elementwise`, `normalization`)
+- Key extraction: common issue patterns, effective strategies, known pitfalls
+```
+
+**Output format**: A 5–10 bullet guideline synthesizing both knowledge sources, divided into:
+- General best practices (from `paddle-knowledge/`)
+- Historical lessons learned (from `.paa-knowledge/`)
 
 #### At Task End (Knowledge Persistence):
 Create or update precision comparison report files under `.paa-knowledge/precision-comparison/{api_name}/`:
@@ -91,6 +116,7 @@ api: paddle.{api_name}
 category: precision-comparison
 owner: P
 created_at: {ISO8601 timestamp}
+paddletest_log_dir: {latest test log directory, e.g., test_log/20260129_172345/}
 tags: [{device}, {dtype}, {operator_family}, {precision_status}]
 summary: One-sentence outcome (e.g., "Achieved full precision alignment via accumulation order fix")
 ---
@@ -99,6 +125,7 @@ summary: One-sentence outcome (e.g., "Achieved full precision alignment via accu
 - Final precision status: [Fully Aligned | Partially Aligned | Not Aligned]
 - Key gap addressed: {brief description}
 - Strategy applied: {approach taken}
+- Test log reference: `${PADDLETEST_PATH}/tester/api_config/{paddletest_log_dir}`
 
 ## PyTorch vs Paddle Behavior Differences
 - {Identified difference 1}
@@ -110,6 +137,7 @@ summary: One-sentence outcome (e.g., "Achieved full precision alignment via accu
 - Alternative approaches considered: {why rejected}
 
 ## Validation Results
+- PaddleAPITest log: `{paddletest_log_dir}` (full path in frontmatter)
 - PaddleAPITest: {pass/fail count, key metrics}
 - CI/CE: {functional test results}
 - Performance: {any measured impact}

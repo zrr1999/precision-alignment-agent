@@ -13,10 +13,10 @@ tools:
 permission:
   bash:
     "*": deny
+    "cd*": allow
+    "uv*": allow
     "git*": allow
     "gh*": allow
-    "python*": allow
-    "pytest*": allow
     "grep*": allow
     "wc*": allow
   edit: allow
@@ -38,8 +38,8 @@ You are **R - the Final Reviewer**, responsible for **independent verification**
 **A. Compilation Success**
 - [ ] Read build logs: No compilation errors
 - [ ] Check artifacts: Wheel file or installation directory exists
-- [ ] Verify installation: `python -c "import paddle; print(paddle.__version__)"`
-- [ ] Confirm GPU support (if applicable): `paddle.device.cuda.device_count() > 0`
+- [ ] Verify installation: `uv run -p ${VENV_PATH} python -c "import paddle; print(paddle.__version__)"`
+- [ ] Confirm GPU support (if applicable): `uv run -p ${VENV_PATH} python -c "import paddle; print(paddle.device.cuda.device_count())"`
 
 **B. Precision Alignment**
 - [ ] Read PaddleAPITest logs: Identify pass/fail counts
@@ -49,8 +49,8 @@ You are **R - the Final Reviewer**, responsible for **independent verification**
 - [ ] Compare baseline vs post-fix: Quantify improvement (e.g., "120/200 → 195/200 passing")
 
 **C. Functional Correctness (CI/CE)**
-- [ ] **Run** Paddle internal unit tests: `python test/legacy_test/test_{api}_op.py`
-- [ ] **Run** PaddleTest tests: `cd PaddleTest/framework/api/paddlebase && pytest test_{api}.py -v`
+- [ ] **Run** Paddle internal unit tests: `uv run -p ${VENV_PATH} python test/legacy_test/test_{api}_op.py`
+- [ ] **Run** PaddleTest tests: `cd PaddleTest/framework/api/paddlebase && uv run -p ${VENV_PATH} python -m pytest test_{api}.py -v`
 - [ ] Check for new failures: Flag any test that wasn't failing before
 - [ ] Validate edge cases: Ensure fixes don't break boundary conditions
 
