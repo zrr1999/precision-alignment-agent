@@ -16,13 +16,6 @@ setup:
     git clone https://github.com/ast-grep/agent-skill.git ~/.config/opencode/skills/ast-grep
 
 # 快速启动精度对齐流程
-# 用法示例：
-#   just quick-start api_name='paddle.pow'
-# 可选的环境变量（未设置时会传入 `{user input}` 占位，交给 Agent 向用户询问）：
-#   PADDLE_PATH      - Paddle 代码库路径
-#   PYTORCH_PATH     - PyTorch 代码库路径
-#   PADDLETEST_PATH  - PaddleAPITest 代码库路径
-#   VENV_PATH        - 用于测试的虚拟环境路径
 quick-start api_name:
     # 为环境变量设置默认占位符，未配置时传入 {user input}
     PADDLE="${PADDLE_PATH:-{user input}}"; \
