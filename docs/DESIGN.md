@@ -10,15 +10,27 @@
 - PaddleAPITest 代码库路径
 - 虚拟环境路径
 
+## 基础能力
+- gh
+- 
+
 ## 核心子 Agent 能力说明
 
-**L - 代码定位官 (Locator)**
+### **L - 源码定位官 (Locator)**
 
-- 深度理解 Paddle/PyTorch 源码结构
+#### 输入信息
+代码库的路径或链接
+需要寻找的目标内容
+
+#### 核心职责
+- 深度理解给定代码库源码结构
 - 分析指定 API 的完整代码路径：API → 中间层 → CUDA Kernel，注意实现分为前向和反向
 - 生成可读性强的计算逻辑伪代码
 - 识别精度关键点（计算顺序、类型转换、数值处理）
 - 标注注意事项和潜在精度风险
+
+#### 核心能力
+- 
 
 **V - 精度验证师 (Validator)**
 
@@ -48,6 +60,9 @@
 
 **P - 修复规划师 (Planner)**
 
+- 创建本地分支：
+  1. **确保基准分支保持最新**：基准分支为 `PAA/develop`，需要保持他在开发前与远程仓库develop分支同步，通常使用 `git pull upstream develop` 更新。
+  2. **创建本地分支**：分支命名格式为 `precision-alignment-agent/{api_name}`，例如 `precision-alignment-agent/pow`、`precision-alignment-agent/layer_norm`
 - 制定修复路线图
 - 安排实施优先级
 - 适应测试反馈调整计划
@@ -61,6 +76,7 @@
 TODO：
 - 添加指导，比如兼容性FLAG以及在什么情况下添加。
 - 性能对比方法，按照什么流程（uv pip old 测试输出报告，uv pip new 测试输出报告，TODO 可以做成工具）
+- 提交代码，在开发过程中注意及时提交代码。
 
 **R - 评审官 (Reviewer)**
 
@@ -73,19 +89,17 @@ TODO：
   - 评估数值精度是否真正对齐（检查精度测试结果）
 - **价值评估**：判断不完整解决方案的价值，识别可保留的改进点
 - **PR 生成流程**：
-  1. **创建本地分支**：分支命名格式为 `precision-alignment-agent/{api_name}`，例如 `precision-alignment-agent/pow`、`precision-alignment-agent/layer_norm`
-  2. **提交代码**：确保所有修改已提交到本地分支
-  3. **生成 PR 标题**：格式为 `[PAA][{type}] {title}`
+  1. **生成 PR 标题**：格式为 `[PAA][{type}] {title}`
      - `{type}` 为具体类型，通常为 `Precision Depth Alignment`
      - `{title}` 为具体标题，描述修改了哪些 API 或更具体的 Kernel、公共函数等
      - 示例：`[PAA][Precision Depth Alignment] Fix layer_norm precision alignment with PyTorch`
-  4. **生成 PR 描述**：
+  2. **生成 PR 描述**：
      - 符合 `.github/PULL_REQUEST_TEMPLATE.md` 标准
      - 重点描述修改了哪些 API 或更具体的 Kernel、公共函数等，尽可能详细
      - 描述 CI/CE 测试（单测和 PaddleTest）和 PaddleAPITest 精度测试的测试情况
      - 使用中文编写
      - 如部分成功，需明确标注未完成工作及原因
-  5. **推送并创建 PR**：推送分支到远程仓库并创建 Pull Request
+  3. **推送并创建 PR**：推送分支到远程仓库并创建 Pull Request
 - **失败报告**：如完全失败，生成详细的失败报告，说明失败原因和已尝试的修复方案
 
 **K - 知识沉淀官 (Knowledge Curator)**
@@ -114,6 +128,7 @@ TODO：
   - 支持后续任务的知识检索和复用
   - 维护知识库的索引和更新机制
 - **知识检索支持**：为后续任务提供知识检索能力，帮助快速定位相似问题和解决方案
+- 增加必要的 skill 。
 
 
 ## 工作流程架构
@@ -195,6 +210,7 @@ R 独立验证和评估（不信任子 Agent 报告，需亲自验证）：
       3. 生成 PR 标题：[PAA][Precision Depth Alignment] {title}
       4. 生成 PR 描述（符合模板，使用中文，详细描述修改和测试情况）
       5. 推送分支并创建 PR
+      6. 监控 PR 的 CI/CE 流水线是否通过
     ↓
   否 → 评估不完整方案是否有价值？
     ↓

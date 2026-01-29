@@ -1,22 +1,35 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "agent": {
-    "build": {
+    "precision-alignment": {
       "mode": "primary",
-      "model": "github-copilot/gpt-5-mini",
+      "model": "github-copilot/claude-sonnet-4.5",
+      "temperature": 0.2,
+      "prompt": "{file:./AGENTS.md}",
       "tools": {
-        "write": true,
-        "edit": true,
-        "bash": true
-      }
-    },
-    "plan": {
-      "mode": "primary",
-      "model": "github-copilot/gpt-5-mini",
-      "tools": {
+        "read": true,
+        "bash": true,
         "write": false,
-        "edit": false,
-        "bash": false
+        "edit": false
+      },
+      "permission": {
+        "task": {
+          "*": "deny",
+          "locator": "allow",
+          "validator": "allow",
+          "coordinator": "allow",
+          "diagnostician": "allow",
+          "planner": "allow",
+          "aligner": "allow",
+          "reviewer": "allow",
+          "curator": "allow"
+        },
+        "bash": {
+          "*": "deny",
+          "git*": "allow"
+        },
+        "edit": "deny",
+        "write": "deny"
       }
     }
   }
