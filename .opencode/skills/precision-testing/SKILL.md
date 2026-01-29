@@ -11,12 +11,12 @@ description: Use PaddleAPITest for precision alignment testing between Paddle an
 
 **文件模式（批量测试）**：
 ```bash
-python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config_file="error_config_layer_norm_v2.txt"
+uv run python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config_file="error_config_layer_norm_v2.txt"
 ```
 
 **单配置模式（单个测试）**：
 ```bash
-python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config='paddle.Tensor.lerp(x=Tensor([4],"float32"), y=Tensor([4],"float32"), weight=0.5, )'
+uv run python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config='paddle.Tensor.lerp(x=Tensor([4],"float32"), y=Tensor([4],"float32"), weight=0.5, )'
 ```
 
 **关键参数说明**：
@@ -28,7 +28,7 @@ python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config='paddle.Tensor
 
 ## 环境要求
 
-- Python >= 3.10（engineV2 推荐）
+- python >= 3.10（engineV2 推荐）
 - PaddlePaddle（develop 版本）
 - PyTorch（用于精度对比）
 - PaddleAPITest 代码库路径
@@ -39,16 +39,16 @@ python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config='paddle.Tensor
 ### 场景 1: 测试错误配置文件
 ```bash
 # 测试包含错误配置的文件
-python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config_file="error_config_layer_norm_v2.txt"
+uv run python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config_file="error_config_layer_norm_v2.txt"
 
 # 指定日志目录
-python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config_file="error_config_layer_norm_v2.txt" --log_dir="./logs"
+uv run python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config_file="error_config_layer_norm_v2.txt" --log_dir="./logs"
 ```
 
 ### 场景 2: 测试单个 API 配置
 ```bash
 # 快速验证单个配置
-python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config='paddle.nn.functional.softmax(Tensor([2, 3, 4],"float32"), axis=-1, )'
+uv run python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config='paddle.nn.functional.softmax(Tensor([2, 3, 4],"float32"), axis=-1, )'
 ```
 
 ### 场景 3: 建立精度基线
@@ -58,13 +58,13 @@ cd ${PADDLEAPITEST_PATH}
 grep "paddle.nn.functional.softmax" tester/api_config/5_accuracy/*.txt > softmax_configs.txt
 
 # 运行精度测试建立基线（使用 --log_dir 指定日志位置）
-python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config_file="softmax_configs.txt" --log_dir="./baseline_logs" >> baseline.log 2>&1
+uv run python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config_file="softmax_configs.txt" --log_dir="./baseline_logs" >> baseline.log 2>&1
 ```
 
 ### 场景 4: 验证修复效果
 ```bash
 # 修复后重新测试（使用 --log_dir 指定日志位置）
-python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config_file="error_config_layer_norm_v2.txt" --log_dir="./verify_logs" >> verify.log 2>&1
+uv run python engineV2.py --atol=0 --rtol=0 --accuracy=True --api_config_file="error_config_layer_norm_v2.txt" --log_dir="./verify_logs" >> verify.log 2>&1
 
 # 对比修复前后结果
 diff baseline.log verify.log

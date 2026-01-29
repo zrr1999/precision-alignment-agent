@@ -20,6 +20,7 @@ permission:
     "ninja*": allow
     "make*": allow
     "cd*": allow
+    "ls*": allow
     "uv*": allow
     "git status": allow
     "git diff": allow

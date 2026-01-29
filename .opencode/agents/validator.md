@@ -16,6 +16,7 @@ tools:
 permission:
   bash:
     "*": deny
+    "ls*": allow
     "cd*": allow
     "uv*": allow
     "grep*": allow
