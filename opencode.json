@@ -5,7 +5,7 @@
       "mode": "primary",
       "model": "github-copilot/claude-sonnet-4.5",
       "temperature": 0.2,
-      "prompt": "{file:./AGENTS.md}",
+      "prompt": "{file:./precision-alignment.md}",
       "tools": {
         "read": true,
         "bash": true,
@@ -24,6 +24,7 @@
           "reviewer": "allow",
           "curator": "allow"
         },
+        "question": "allow",
         "bash": {
           "*": "deny",
           "git*": "allow"
