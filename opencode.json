@@ -25,6 +25,7 @@
         "question": "allow",
         "bash": {
           "*": "deny",
+          "ls": "allow",
           "git*": "allow"
         },
         "edit": "deny",

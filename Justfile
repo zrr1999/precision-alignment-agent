@@ -11,6 +11,7 @@ setup:
 
     # 安装 AI coding agent
     bun install -g opencode-ai
+    bun install -g ocx
 
     # 安装系统 skills
     git clone https://github.com/ast-grep/agent-skill.git ~/.config/opencode/skills/ast-grep
