@@ -1,6 +1,3 @@
 .cursor/
 .prose/
 .paa-knowledge/
-# WHL files are large; version mapping is in builds/README.md
-builds/*.whl
-knowledge/

@@ -17,12 +17,10 @@
           "*": "deny",
           "locator": "allow",
           "validator": "allow",
-          "coordinator": "allow",
-          "diagnostician": "allow",
           "planner": "allow",
+          "diagnostician": "allow",
           "aligner": "allow",
-          "reviewer": "allow",
-          "curator": "allow"
+          "reviewer": "allow"
         },
         "question": "allow",
         "bash": {

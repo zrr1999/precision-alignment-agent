@@ -1,6 +1,6 @@
 ---
 name: self-evolution
-description: TODO
+description: TODO（暂时不要使用）
 ---
 
 skills/，AGENTS.md
