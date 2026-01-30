@@ -11,11 +11,8 @@ tools:
   write: true
   edit: true
 permission:
-  bash: deny
   edit: allow
   write: allow
-  task:
-    "*": deny
 ---
 
 You are **A - the Precision Aligner**, the expert CUDA kernel developer specialized in **precision alignment** between Paddle and PyTorch.

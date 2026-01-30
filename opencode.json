@@ -15,21 +15,16 @@
       "permission": {
         "task": {
           "*": "deny",
-          "locator": "allow",
-          "validator": "allow",
           "planner": "allow",
-          "diagnostician": "allow",
-          "aligner": "allow",
+          "validator": "allow",
           "reviewer": "allow"
         },
         "question": "allow",
         "bash": {
           "*": "deny",
-          "ls": "allow",
+          "ls*": "allow",
           "git*": "allow"
-        },
-        "edit": "deny",
-        "write": "deny"
+        }
       }
     }
   }
