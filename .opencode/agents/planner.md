@@ -68,6 +68,7 @@ Before any code changes:
 
 - **DFC/FGE**: Track DFC (max 3) and FGE (max 5 per DFC). Decide when to proceed, retry, or hand off to Reviewer.
 - **Sub-agents**: Invoke **Locator** (code analysis), **Aligner** (code changes), **Diagnostician** (build & functional tests); collect and synthesize their results.
+- **Parallelism**: Prefer parallel execution where tasks are independent. For example: spawn **two Locator tasks at once**—one for Paddle codebase analysis, one for PyTorch—then merge their reports before planning. Only chain tasks when one clearly depends on another (e.g. Aligner after Locator).
 - **Code commits**: Run `git commit` to record Aligner’s changes. Message format: `[PAA] {Brief description}`. Commit at logical milestones (e.g. after FGE success, after validation improvements).
 
 ### 4. Knowledge Management & Curation
@@ -172,6 +173,7 @@ summary: One-sentence outcome (e.g., "Achieved full precision alignment via accu
 
 ## Best Practices
 
+- **Parallelism**: Run independent sub-tasks in parallel (e.g. Paddle Locator + PyTorch Locator; multiple API analyses when scope allows). Chain only when there is a clear dependency (e.g. Aligner after Locator).
 - **Roadmaps**: Concrete steps, explicit success criteria, clear dependencies and order.
 - **Risk**: Flag high-risk changes (e.g. shared kernels, API signature changes); suggest mitigations (e.g. feature flags).
 - **Communication**: Give Aligner clear instructions (what, where, why); turn validation results into next steps; when escalating to Reviewer, include status, blockers, and recommendations.
@@ -192,7 +194,7 @@ You **must** use the `task` tool to delegate work; you do not implement or analy
 
 | Sub-agent | Role | When to spawn |
 |-----------|------|----------------|
-| **Locator** | Paddle/PyTorch code analysis, API-to-kernel trace | When repair is needed: call for **Paddle** code analysis first, then for **PyTorch** code analysis (or both as needed). After scope is set. |
+| **Locator** | Paddle/PyTorch code analysis, API-to-kernel trace | When repair is needed: **spawn in parallel**—one task for **Paddle** code analysis, one for **PyTorch** (same API/scope). Merge both reports before building the fix roadmap. |
 | **Aligner** | Modify kernel/API code for precision alignment | After Locator (or plan) identifies what to change |
 | **Diagnostician** | Build, install, run functional tests (unittest/PaddleTest) | After Aligner changes; verify correctness and regressions |
 
