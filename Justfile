@@ -17,13 +17,13 @@ setup:
     git clone https://github.com/ast-grep/agent-skill.git ~/.config/opencode/skills/ast-grep
 
 # 快速启动精度对齐流程
-quick-start api_name:
+quick-start api_name additional_info:
     # 为环境变量设置默认占位符，未配置时传入 {user input}
     PADDLE="${PADDLE_PATH:-{user input}}"; \
     PYTORCH="${PYTORCH_PATH:-{user input}}"; \
     PADDLETEST="${PADDLETEST_PATH:-{user input}}"; \
     VENV="${VENV_PATH:-{user input}}"; \
-    opencode --agent precision-alignment --prompt "api_name={{api_name}} paddle_path=$PADDLE pytorch_path=$PYTORCH paddletest_path=$PADDLETEST venv_path=$VENV"
+    opencode --agent precision-alignment --prompt "Start precision alignment workflow for {{api_name}}(additonal info: {{additional_info}}), inputs: paddle_path=$PADDLE, pytorch_path=$PYTORCH, paddletest_path=$PADDLETEST, venv_path=$VENV"
 
 # ============================================================================
 # Agentic Commands - For Agent Use Only
