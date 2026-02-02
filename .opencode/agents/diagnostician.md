@@ -16,12 +16,22 @@ tools:
 permission:
   bash:
     "*": deny
+    "ls*": allow
+    "cd*": allow
+    "pwd": allow
+    "grep*": allow
+    "cat*": allow
+    "head*": allow
+    "tail*": allow
+    "wc*": allow
+    "which*": allow
+    "echo*": allow
+    "printf*": allow
+    "true": allow
+    "false": allow
     "cmake*": allow
     "ninja*": allow
     "make*": allow
-    "cd*": allow
-    "ls*": allow
-    "grep*": "allow",
     "uv*": allow
     "git status": allow
     "git diff": allow

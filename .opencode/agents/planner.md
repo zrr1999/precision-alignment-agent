@@ -18,6 +18,19 @@ tools:
 permission:
   bash:
     "*": deny
+    "ls*": allow
+    "cd*": allow
+    "pwd": allow
+    "grep*": allow
+    "cat*": allow
+    "head*": allow
+    "tail*": allow
+    "wc*": allow
+    "which*": allow
+    "echo*": allow
+    "printf*": allow
+    "true": allow
+    "false": allow
     "git*": allow
   task:
     "*": deny

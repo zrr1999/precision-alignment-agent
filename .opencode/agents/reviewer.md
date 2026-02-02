@@ -17,11 +17,20 @@ permission:
     "*": deny
     "ls*": allow
     "cd*": allow
+    "pwd": allow
+    "grep*": allow
+    "cat*": allow
+    "head*": allow
+    "tail*": allow
+    "wc*": allow
+    "which*": allow
+    "echo*": allow
+    "printf*": allow
+    "true": allow
+    "false": allow
     "uv*": allow
     "git*": allow
     "gh*": allow
-    "grep*": allow
-    "wc*": allow
     "just": allow
     "just agentic*": allow
   edit: allow
