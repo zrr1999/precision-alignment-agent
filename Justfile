@@ -32,12 +32,21 @@ quick-start api_name:
 # All commands require environment variables to be set.
 # ============================================================================
 
-# Verify Paddle installation in virtual environment
-agentic-verify-paddle-install VENV_PATH:
+agentic-venv-setup VENV_PATH PADDLE_PATH: 
     #!/usr/bin/env bash
     set -euo pipefail
-    echo "Verifying Paddle installation in {{VENV_PATH}}..."
-    uv run -p "{{VENV_PATH}}" python -c "import paddle; print(f'Paddle version: {paddle.__version__}'); print(f'CUDA devices: {paddle.device.cuda.device_count()}')"
+    uv venv --no-project --relocatable --seed --allow-existing "{{VENV_PATH}}"
+    cd {{VENV_PATH}}/..
+    uv pip install func_timeout pandas pebble pynvml pyyaml typer httpx numpy torchvision torch==2.9.1
+    uv pip install {{PADDLE_PATH}}/build/python/dist/*.whl --force-reinstall
+
+# Verify Paddle installation in virtual environment
+agentic-paddle-install VENV_PATH PADDLE_PATH:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir "{{VENV_PATH}}"
+    cd "{{VENV_PATH}}"
+    uv pip install {{PADDLE_PATH}}/build/python/dist/*.whl --no-deps --force-reinstall
 
 # Run Paddle internal unit test for a specific API
 agentic-run-paddle-unittest VENV_PATH TEST_FILE:
@@ -71,21 +80,3 @@ agentic-run-precision-test VENV_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DIR:
     echo "---"
     echo "Log directory: {{LOG_DIR}}"
     echo "Full path: {{PADDLEAPITEST_PATH}}/{{LOG_DIR}}"
-
-# Extract precision test results from latest log directory
-agentic-get-precision-results PADDLEAPITEST_PATH LOG_DIR:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    cd "{{PADDLEAPITEST_PATH}}/{{LOG_DIR}}"
-    
-    echo "Latest log directory: {{LOG_DIR}}"
-    echo ""
-    echo "GPU Results:"
-    echo "  Passed:    $(wc -l < "{{LOG_DIR}}/accuracy_gpu.txt" 2>/dev/null || echo 0)"
-    echo "  Errors:    $(wc -l < "{{LOG_DIR}}/accuracy_gpu_error.txt" 2>/dev/null || echo 0)"
-    echo "  Crashes:   $(wc -l < "{{LOG_DIR}}/accuracy_gpu_kernel.txt" 2>/dev/null || echo 0)"
-    echo ""
-    echo "CPU Results:"
-    echo "  Passed:    $(wc -l < "{{LOG_DIR}}/accuracy_cpu.txt" 2>/dev/null || echo 0)"
-    echo "  Errors:    $(wc -l < "{{LOG_DIR}}/accuracy_cpu_error.txt" 2>/dev/null || echo 0)"
-    echo "  Crashes:   $(wc -l < "{{LOG_DIR}}/accuracy_cpu_kernel.txt" 2>/dev/null || echo 0)"

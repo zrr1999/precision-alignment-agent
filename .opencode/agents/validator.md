@@ -75,26 +75,9 @@ paddle.Tensor.pow(self=Tensor([4,5],"float64"), y=Tensor([4,5],"float64"), )
 
 #### Result Interpretation
 
-PaddleAPITest saves results to timestamped log directory. Use this command to get results from the latest test run:
-
-```bash
-just agentic-get-precision-results ${PADDLETEST_PATH}
-```
+PaddleAPITest saves results to timestamped log directory.
 
 This will automatically find the latest log directory and show you the results summary.
-
-**Primary result files** (under the log directory):
-- `accuracy_{device}.txt`: **Passed tests** (precision aligned)
-- `accuracy_{device}_error.txt`: **Precision mismatch** (forward or backward output differs)
-- `accuracy_{device}_kernel.txt`: **Kernel crash** (CUDA error, segfault, exception)
-
-**Secondary result files** (informational):
-- `accuracy_{device}_error_dtype_diff.txt`: dtype mismatch (may be expected for certain APIs)
-- `accuracy_{device}_error_grads_diff.txt`: gradient structure differs (e.g., one side has no grad)
-
-**Where `{device}` is**:
-- `gpu`: CUDA execution results
-- `cpu`: CPU execution results
 
 #### Critical Analysis: Forward vs Backward Errors
 

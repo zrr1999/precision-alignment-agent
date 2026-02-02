@@ -21,6 +21,7 @@ permission:
     "make*": allow
     "cd*": allow
     "ls*": allow
+    "grep*": "allow",
     "uv*": allow
     "git status": allow
     "git diff": allow

@@ -23,6 +23,7 @@
         "bash": {
           "*": "deny",
           "ls*": "allow",
+          "grep*": "allow",
           "git*": "allow"
         }
       }
