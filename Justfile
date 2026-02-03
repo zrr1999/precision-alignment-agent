@@ -26,13 +26,16 @@ setup-repos username:
 
 # 快速启动精度对齐流程
 quick-start api_name additional_info:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
     PAA_ROOT=$(pwd)
 
     # 为环境变量设置默认占位符
-    PADDLE_PATH="${PADDLE_PATH:-.paa/repos/Paddle}"
-    PYTORCH_PATH="${PYTORCH_PATH:-.paa/repos/pytorch}"
-    PADDLETEST_PATH="${PADDLETEST_PATH:-.paa/repos/PaddleTest}"
-    PADDLEAPITEST_PATH="${PADDLEAPITEST_PATH:-.paa/repos/PaddleAPITest}"
+    PADDLE_PATH="${PADDLE_PATH:=.paa/repos/Paddle}"
+    PYTORCH_PATH="${PYTORCH_PATH:=.paa/repos/pytorch}"
+    PADDLETEST_PATH="${PADDLETEST_PATH:=.paa/repos/PaddleTest}"
+    PADDLEAPITEST_PATH="${PADDLEAPITEST_PATH:=.paa/repos/PaddleAPITest}"
 
     # 规范化为绝对路径
     PADDLE_PATH="$(cd "$PADDLE_PATH" && pwd)"
@@ -47,16 +50,20 @@ quick-start api_name additional_info:
     echo "Setting up worktree"
     mkdir -p .paa/worktree
     cd $PADDLE_PATH
-    git checkout develop
-    git checkout -b PAA/develop
+    git switch -c PAA/develop 2>/dev/null || git switch PAA/develop
     git pull upstream develop
-    git worktree add $PAA_ROOT/.paa/worktree/Paddle_{{api_name}} -b precision-alignment-agent/{{api_name}}
+    if [ -d "$PAA_ROOT/.paa/worktree/Paddle_{{api_name}}" ]; then
+        cd "$PAA_ROOT/.paa/worktree/Paddle_{{api_name}}"
+    else
+        git worktree add $PAA_ROOT/.paa/worktree/Paddle_{{api_name}} -b precision-alignment-agent/{{api_name}}
+    fi
 
     echo "PADDLE_PATH: $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}"
     VENV_PATH="${VENV_PATH:-$PADDLE_PATH/venv}"
 
     cd $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}
-    mkdir build
+    mkdir -p build
+    cd build
     cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPY_VERSION=3.10 -DCUDA_ARCH_NAME=Auto -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja
     just agentic-venv-setup $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}/venv $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}
 
@@ -164,7 +171,7 @@ agentic-run-precision-test VENV_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DIR:
         --rtol=0 \
         --accuracy=True \
         --api_config_file="{{ CONFIG_FILE }}" \
-        --log_dir="{{ LOG_DIR }}"
+        --log_dir="PAA_test_log/{{ LOG_DIR }}"
 
     # Find and output the latest log directory
     echo "---"
