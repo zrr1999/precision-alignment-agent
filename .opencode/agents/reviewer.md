@@ -13,6 +13,8 @@ tools:
   bash: true
   write: true
   edit: true
+  webfetch: true
+  websearch: true
 permission:
   bash:
     "*": deny
@@ -49,7 +51,7 @@ Do **not** rely solely on others' reports. You **must** run the checks below you
 |------|------------------|
 | **Compilation** | Confirm build logs are clean and artifacts exist; run `just agentic-verify-paddle-install ${VENV_PATH}` and report result (OK or error). |
 | **Precision** | Read PaddleAPITest logs from the task; then **re-run at least 5** precision test configs (include both previously passing and failing cases from the report). Compare your run result with the reported pass/fail; if inconsistent, say so. Report baseline vs post-fix **counts** (e.g. 120/200 → 195/200). |
-| **CI/CE** | Run `just agentic-run-paddle-unittest ${VENV_PATH} {api_name}` and `just agentic-run-paddletest ${VENV_PATH} ${PADDLETEST_PATH} {api_name}`; **list** any new failures (tests that were not failing before). |
+| **CI/CE** | Run `just agentic-run-paddle-unittest ${VENV_PATH} ${PADDLE_PATH} {api_name}` and `just agentic-run-paddletest ${VENV_PATH} ${PADDLETEST_PATH} {api_name}`; **list** any new failures (tests that were not failing before). |
 | **Performance** | If performance data was provided, compare before/after; if slowdown >10%, **must** flag it and require justification or mitigation. |
 | **Compatibility** | If API or YAML changed, confirm the change is documented and feature flags (if any) have safe defaults. |
 

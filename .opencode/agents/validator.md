@@ -4,7 +4,6 @@ mode: subagent
 model: github-copilot/gpt-5.2-codex
 temperature: 0.05
 skills:
-  - paddle-precision-testing
   - just-workflow
   - paa-knowledge-curation
 tools:

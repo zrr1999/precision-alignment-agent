@@ -68,14 +68,15 @@ Do **not** use merge, rebase, reset, or other history-rewriting. If branch check
 
 ## Branch Setup
 
-- Base: `PAA/develop`; sync with `git checkout PAA/develop` then `git pull upstream develop`.
-- Feature branch: `precision-alignment-agent/{api_name}` (multi-API: use primary API name).
+- **Base**: `PAA/develop`; sync with `git checkout PAA/develop` then `git pull upstream develop`.
+- **Feature branch**: `precision-alignment-agent/{api_name}` (multi-API: use primary API name). **You must create or switch to this branch before starting the fix loop**: from `PAA/develop`, run `git checkout -b precision-alignment-agent/{api_name}` if the branch does not exist, or `git checkout precision-alignment-agent/{api_name}` if it does. All Locator/Aligner/Diagnostician work and commits happen on this feature branch—do not run the fix loop on `PAA/develop`.
 
 ## Your Flow (Small Loop Only)
 
 - **If the task is only a rejection report** (see above): do branch adjustment only, then exit. Do not run the steps below.
 - **Otherwise** (task includes baseline pass/fail or test-failure details), proceed:
 
+0. **Ensure feature branch**: In the Paddle repo (`paddle_path`), ensure you are on `precision-alignment-agent/{api_name}`—create it from `PAA/develop` if it does not exist (`git checkout -b precision-alignment-agent/{api_name}`), otherwise switch to it (`git checkout precision-alignment-agent/{api_name}`). Do not run the fix loop on `PAA/develop`.
 1. **Load knowledge**: Read `knowledge/commons/` and search `.paa/memory/` by topic (no API names). Produce 5–10 bullet points of actionable guidance; if nothing relevant, say "No relevant long-term memory found".
 2. **Locator** (if not already provided): Spawn **two** separate tasks—Paddle and PyTorch—with `paddle_path`/`pytorch_path` and `api_name`. Merge the two reports.
 3. **Roadmap**: From Locator report + knowledge, write an ordered fix plan with success criteria. Prioritize by precision severity, impact, risk, dependencies; for shared kernels, decide align-together vs separate.
@@ -99,7 +100,7 @@ Do **not** use merge, rebase, reset, or other history-rewriting. If branch check
   - Produce **5–10 bullet points** of actionable guidance: recommended flags, typical precision-gap patterns, common pitfalls, and proven fix/verification strategies. If nothing relevant is found, explicitly say “No relevant long-term memory found” and do not invent content.
 - **End (write session-level report only)**:
   - Write this task’s overall precision-comparison conclusions, key decisions, trade-offs, and remaining gaps to `.paa/sessions/{session_id}/planner/{api_name}/{short-title}.md`.
-  - `session_id` is provided by the caller; use it for all report paths and pass it to locator, aligner, and diagnostician. If missing, you should question the caller for it.
+  - `session_id` is provided by the orchestrator; use it for all report paths and pass it to locator, aligner, and diagnostician. Do not ask the caller for it; if missing, state it in your reply and proceed with what you have.
   - Suggested sections: Summary & Outcome, PyTorch vs Paddle Differences, Fix Strategy, Validation Results, Related Reports, Open Issues.
   - If you discover **cross-API reusable** knowledge (for example, a kernel-family-wide precision pattern), call the `paa-knowledge-curation` skill at the end of the task to append an abstracted summary to `.paa/memory/{topic}.md`, where `{topic}` names the concept/pattern (and does **not** include specific API names).
 

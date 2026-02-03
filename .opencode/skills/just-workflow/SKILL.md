@@ -5,7 +5,11 @@ description: Use Justfile agentic commands to run workflows (venv, Paddle instal
 
 # Just Workflow Skill
 
-For testing and environment-related operations, **prioritize the Justfile commands defined in this skill**. The `Justfile` is located at the project root. Other skills (such as `functional-testing`, `precision-testing`) should prefer calling the `agentic-` recipes listed below when executing tests.
+For testing and environment-related operations, **prioritize the Justfile commands defined in this skill**. The `Justfile` is located at the project root. **Validator** uses `agentic-run-precision-test` for precision alignment verification; **Diagnostician** uses `agentic-run-paddle-unittest` and `agentic-run-paddletest` for functional/smoke tests.
+
+## Where to run just (mandatory)
+
+**All `just` commands must be run from the directory that contains the Justfile**—i.e. the agent project root (the precision-alignment-agent repo root, typically the same directory from which the agent is invoked). **Do not** `cd` into `paddle_path`, `pytorch_path`, `paddletest_path`, or any other development repo and run `just` there; the Justfile is not in those repos. Pass paths to Paddle/PaddleTest/etc. as **parameters** to the recipes (e.g. `VENV_PATH`, `PADDLE_PATH`, `PADDLETEST_PATH`), and invoke `just` from the agent main directory only.
 
 ## Core Usage
 
@@ -41,8 +45,8 @@ just agentic-venv-setup /path/to/venv /path/to/paddle
 # Verify Paddle installation only
 just agentic-paddle-install /path/to/venv /path/to/paddle
 
-# Paddle internal unit test (TEST_FILE is absolute or relative path to test script)
-just agentic-run-paddle-unittest /path/to/venv /path/to/paddle/python/paddle/fluid/tests/unittests/test_layer_norm_op.py
+# Paddle internal unit test (TEST_FILE is relative path to test script)
+just agentic-run-paddle-unittest /path/to/venv /path/to/paddle test/legacy_test/test_layer_norm_op.py
 
 # PaddleTest (TEST_FILE is pytest-recognizable module/file, e.g., test_layer_norm.py)
 just agentic-run-paddletest /path/to/venv /path/to/PaddleTest test_layer_norm.py
@@ -57,3 +61,5 @@ just agentic-run-precision-test /path/to/venv /path/to/PaddleAPITest error_confi
 - **Environment variables**: All agentic commands depend on the caller having set `VENV_PATH`, `PADDLE_PATH`, `PADDLETEST_PATH`, `PADDLEAPITEST_PATH`, etc. (see each command's parameters).
 - **TEST_FILE distinction**: For Paddle internal unit tests, it's the full Python file path; for PaddleTest, it's a pytest-recognizable module/filename.
 - **Troubleshooting**: Check command output for errors, and verify that passed paths match the parameter meanings defined in the root `Justfile`.
+- **Precision test (Validator)**: Results and logs go to the `LOG_DIR` (or default) under PaddleAPITest; error files include `accuracy_*_error.txt` / `accuracy_*_kernel.txt`. Use the log directory path reported by the command in session reports.
+- **Functional test (Diagnostician)**: Interpret as OK / FAILED (N) / ERROR (env or setup). Run smoke test after each Aligner change; run broader coverage before handoff.
