@@ -5,7 +5,7 @@ description: Curate, read, and persist long-term precision-alignment knowledge i
 
 ## `.paa/memory/` layout (long-term, topic-based)
 
-All **long-term** knowledge (cross-task patterns, conclusions, lessons) SHOULD be stored under `.paa/memory/` as **flat Markdown files**, each file representing **one topic** (similar to a skill).  
+All **long-term** knowledge (cross-task patterns, conclusions, lessons) SHOULD be stored under `.paa/memory/` as **flat Markdown files**, each file representing **one topic** (similar to a skill).
 Topic filenames should use conceptual names and **avoid API names**, for example:
 
 - `accuracy-compatible-kernel.md`
@@ -76,4 +76,3 @@ When writing or updating topics:
 - Prefer **updating an existing topic** (same concept/tags) instead of creating near-duplicates.
 - Keep content API-agnostic; mention specific APIs only as examples inside the body, not in the filename.
 - Maintain a stable tag vocabulary to make future lookup reliable.
-

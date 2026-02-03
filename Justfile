@@ -51,7 +51,7 @@ quick-start api_name additional_info:
     git checkout -b PAA/develop
     git pull upstream develop
     git worktree add $PAA_ROOT/.paa/worktree/Paddle_{{api_name}} -b precision-alignment-agent/{{api_name}}
-    
+
     echo "PADDLE_PATH: $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}"
     VENV_PATH="${VENV_PATH:-$PADDLE_PATH/venv}"
 
@@ -61,7 +61,7 @@ quick-start api_name additional_info:
     just agentic-venv-setup $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}/venv $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}
 
     echo "Successfully setup worktree and created venv"
-    
+
     cd $PAA_ROOT
 
     echo "Starting precision alignment workflow for {{ api_name }} \
