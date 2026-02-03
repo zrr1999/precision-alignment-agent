@@ -18,6 +18,7 @@ setup:
 
 # 初始化仓库
 setup-repos username:
+    mkdir -p .paa/repos
     git clone https://github.com/{{ username }}/Paddle.git .paa/repos/Paddle
     git clone https://github.com/{{ username }}/PaddleTest.git .paa/repos/PaddleTest
     git clone https://github.com/{{ username }}/PaddleAPITest.git .paa/repos/PaddleAPITest
@@ -25,12 +26,59 @@ setup-repos username:
 
 # 快速启动精度对齐流程
 quick-start api_name additional_info:
-    # 为环境变量设置默认占位符，未配置时传入 {user input}
-    PADDLE="${PADDLE_PATH:-{user input}"; \
-    PYTORCH="${PYTORCH_PATH:-{user input}"; \
-    PADDLETEST="${PADDLETEST_PATH:-{user input}"; \
-    VENV="${VENV_PATH:-{user input}"; \
-    opencode --agent precision-alignment --prompt "Start precision alignment workflow for {{ api_name }}(additonal info: {{ additional_info }}), inputs: paddle_path=$PADDLE, pytorch_path=$PYTORCH, paddletest_path=$PADDLETEST, venv_path=$VENV"
+    PAA_ROOT=$(pwd)
+
+    # 为环境变量设置默认占位符
+    PADDLE_PATH="${PADDLE_PATH:-.paa/repos/Paddle}"
+    PYTORCH_PATH="${PYTORCH_PATH:-.paa/repos/pytorch}"
+    PADDLETEST_PATH="${PADDLETEST_PATH:-.paa/repos/PaddleTest}"
+    PADDLEAPITEST_PATH="${PADDLEAPITEST_PATH:-.paa/repos/PaddleAPITest}"
+
+    # 规范化为绝对路径
+    PADDLE_PATH="$(cd "$PADDLE_PATH" && pwd)"
+    PYTORCH_PATH="$(cd "$PYTORCH_PATH" && pwd)"
+    PADDLETEST_PATH="$(cd "$PADDLETEST_PATH" && pwd)"
+    PADDLEAPITEST_PATH="$(cd "$PADDLEAPITEST_PATH" && pwd)"
+
+    echo "PYTORCH_PATH: $PYTORCH_PATH"
+    echo "PADDLETEST_PATH: $PADDLETEST_PATH"
+    echo "PADDLEAPITEST_PATH: $PADDLEAPITEST_PATH"
+
+    echo "Setting up worktree"
+    mkdir -p .paa/worktree
+    cd $PADDLE_PATH
+    git checkout develop
+    git checkout -b PAA/develop
+    git pull upstream develop
+    git worktree add $PAA_ROOT/.paa/worktree/Paddle_{{api_name}} -b precision-alignment-agent/{{api_name}}
+    
+    echo "PADDLE_PATH: $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}"
+    VENV_PATH="${VENV_PATH:-$PADDLE_PATH/venv}"
+
+    cd $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}
+    mkdir build
+    cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPY_VERSION=3.10 -DCUDA_ARCH_NAME=Auto -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja
+    just agentic-venv-setup $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}/venv $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}
+
+    echo "Successfully setup worktree and created venv"
+    
+    cd $PAA_ROOT
+
+    echo "Starting precision alignment workflow for {{ api_name }} \
+        (additional info: {{ additional_info }}), with inputs: \
+        paddle_path=$PADDLE_PATH, \
+        pytorch_path=$PYTORCH_PATH, \
+        paddletest_path=$PADDLETEST_PATH, \
+        venv_path=$VENV"
+
+    opencode \
+      --agent precision-alignment \
+      --prompt "Start precision alignment workflow for {{ api_name }} \
+        (additional info: {{ additional_info }}), with inputs: \
+        paddle_path=$PADDLE, \
+        pytorch_path=$PYTORCH, \
+        paddletest_path=$PADDLETEST, \
+        venv_path=$VENV"
 
 # ============================================================================
 # Agentic Commands - For Agent Use Only
@@ -91,11 +139,11 @@ agentic-run-paddletest VENV_PATH PADDLETEST_PATH TEST_FILE:
     #!/usr/bin/env bash
     set -euo pipefail
     cd "{{ PADDLETEST_PATH }}"
-    
+
     echo "Running PaddleTest(FLAGS_use_accuracy_compatible_kernel=0) for {{ TEST_FILE }}..."
     FLAGS_use_accuracy_compatible_kernel=0 \
     uv run --no-project -p "{{ VENV_PATH }}" python -m pytest "{{ TEST_FILE }}" -v
-    
+
     echo "Running PaddleTest(FLAGS_use_accuracy_compatible_kernel=1) for {{ TEST_FILE }}..."
     FLAGS_use_accuracy_compatible_kernel=1 \
     uv run --no-project -p "{{ VENV_PATH }}" python -m pytest "{{ TEST_FILE }}" -v

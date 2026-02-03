@@ -52,7 +52,7 @@
 - 定位和分析编译、运行时等各类故障，分类故障类型（简单/复杂、编译/运行时）
 - 提供修复建议或升级报告，确保 Patch 不存在漏洞和风险
 - **负责编译和安装流程**：
-  - 配置和构建 Paddle：`cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPY_VERSION=3.10 -DCUDA_ARCH_NAME=Ampere -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja`
+  - 配置和构建 Paddle：`cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPY_VERSION=3.10 -DCUDA_ARCH_NAME=Auto -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja`
   - 执行编译：`ninja -j$(nproc)`
   - **编译完成后，在虚拟环境中使用 `uv pip install` 安装编译产物**，确保修改后的代码可以被测试使用
 - **负责 CI/CE 流程测试**：运行 Paddle 内部单测（直接运行 Python 测试文件）和 PaddleTest 仓库测试（在 `framework/api/paddlebase` 目录下使用 pytest），验证功能正确性和回归问题
