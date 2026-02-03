@@ -1,14 +1,59 @@
 ---
 name: just-workflow
-description: |
-  Use Justfile commands to execute some workflows. Commands are prefixed with agentic.
-  When in doubt, run `just` with no arguments to list all executable commands and their parameters.
+description: Use Justfile agentic commands to run workflows (venv, Paddle install, unit test, PaddleTest, precision test). Prefer these commands over raw bash when running tests or setting up environments.
 ---
 
 # Just Workflow Skill
 
-## Usage
+For testing and environment-related operations, **prioritize the Justfile commands defined in this skill**. The `Justfile` is located at the project root. Other skills (such as `functional-testing`, `precision-testing`) should prefer calling the `agentic-` recipes listed below when executing tests.
 
-- **List commands**: Run `just` with no arguments to show all recipes and their parameters.
-- **Use only `agentic-` recipes**: Those are for agents; other recipes are for human use.
-- **On failure**: Check the error output, then verify paths and environment variables.
+## Core Usage
+
+| Scenario | Command | Parameters | Description |
+|----------|---------|------------|-------------|
+| Environment Setup | `just agentic-venv-setup` | `VENV_PATH` `PADDLE_PATH` | Create/update relocatable venv, install dependencies and Paddle whl |
+| Paddle Install | `just agentic-paddle-install` | `VENV_PATH` `PADDLE_PATH` | Create venv in specified directory and install only Paddle whl (no other dependencies) |
+| Paddle Unit Test | `just agentic-run-paddle-unittest` | `VENV_PATH` `TEST_FILE` | Run Paddle internal unit tests using specified venv (directly execute Python test file) |
+| PaddleTest | `just agentic-run-paddletest` | `VENV_PATH` `PADDLETEST_PATH` `TEST_FILE` | Run specified test file with pytest under `framework/api/paddlebase` in PaddleTest |
+| PaddleAPITest | `just agentic-run-precision-test` | `VENV_PATH` `PADDLEAPITEST_PATH` `CONFIG_FILE` `LOG_DIR` | Run PaddleAPITest precision validation (atol=0, rtol=0, accuracy=True) and output log directory path |
+
+## Parameter Descriptions
+
+| Parameter | Description |
+|-----------|-------------|
+| `VENV_PATH` | Absolute path to the virtual environment |
+| `PADDLE_PATH` | Absolute path to Paddle codebase |
+| `PADDLETEST_PATH` | Absolute path to PaddleTest codebase |
+| `PADDLEAPITEST_PATH` | Absolute path to PaddleAPITest codebase |
+| `TEST_FILE` | Test file path (for unit tests) or filename (for PaddleTest, e.g., `test_layer_norm.py`) |
+| `CONFIG_FILE` | PaddleAPITest config filename or path (e.g., `error_config_layer_norm_v2.txt`) |
+| `LOG_DIR` | Log output directory name or path (optional, default `./logs`) |
+
+## Examples
+
+```bash
+# List all commands
+just
+
+# Environment setup: create venv and install Paddle with dependencies
+just agentic-venv-setup /path/to/venv /path/to/paddle
+
+# Verify Paddle installation only
+just agentic-paddle-install /path/to/venv /path/to/paddle
+
+# Paddle internal unit test (TEST_FILE is absolute or relative path to test script)
+just agentic-run-paddle-unittest /path/to/venv /path/to/paddle/python/paddle/fluid/tests/unittests/test_layer_norm_op.py
+
+# PaddleTest (TEST_FILE is pytest-recognizable module/file, e.g., test_layer_norm.py)
+just agentic-run-paddletest /path/to/venv /path/to/PaddleTest test_layer_norm.py
+
+# PaddleAPITest precision test (CONFIG_FILE is config filename/path, LOG_DIR is log output directory/path)
+just agentic-run-precision-test /path/to/venv /path/to/PaddleAPITest error_config_layer_norm_v2.txt ./logs
+```
+
+## Notes
+
+- **Use only `agentic-` recipes**: These are for Agent use; recipes without this prefix are for human use.
+- **Environment variables**: All agentic commands depend on the caller having set `VENV_PATH`, `PADDLE_PATH`, `PADDLETEST_PATH`, `PADDLEAPITEST_PATH`, etc. (see each command's parameters).
+- **TEST_FILE distinction**: For Paddle internal unit tests, it's the full Python file path; for PaddleTest, it's a pytest-recognizable module/filename.
+- **Troubleshooting**: Check command output for errors, and verify that passed paths match the parameter meanings defined in the root `Justfile`.

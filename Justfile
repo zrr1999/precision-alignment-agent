@@ -19,10 +19,10 @@ setup:
 # 快速启动精度对齐流程
 quick-start api_name additional_info:
     # 为环境变量设置默认占位符，未配置时传入 {user input}
-    PADDLE="${PADDLE_PATH:-{user input}}"; \
-    PYTORCH="${PYTORCH_PATH:-{user input}}"; \
-    PADDLETEST="${PADDLETEST_PATH:-{user input}}"; \
-    VENV="${VENV_PATH:-{user input}}"; \
+    PADDLE="${PADDLE_PATH:-{user input}"; \
+    PYTORCH="${PYTORCH_PATH:-{user input}"; \
+    PADDLETEST="${PADDLETEST_PATH:-{user input}"; \
+    VENV="${VENV_PATH:-{user input}"; \
     opencode --agent precision-alignment --prompt "Start precision alignment workflow for {{api_name}}(additonal info: {{additional_info}}), inputs: paddle_path=$PADDLE, pytorch_path=$PYTORCH, paddletest_path=$PADDLETEST, venv_path=$VENV"
 
 # ============================================================================
@@ -31,6 +31,18 @@ quick-start api_name additional_info:
 # Convention: Only commands prefixed with "agentic-" can be used by agents.
 # All commands require environment variables to be set.
 # ============================================================================
+
+agentic-repos-setup PADDLE_PATH PADDLETEST_PATH PADDLEAPITEST_PATH PYTORCH_PATH:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "Setting up external repos..."
+    rm -rf .paa_repos
+    mkdir -p .paa_repos
+    ln -sf "{{PADDLE_PATH}}" .paa_repos/Paddle
+    ln -sf "{{PADDLETEST_PATH}}" .paa_repos/PaddleTest
+    ln -sf "{{PADDLEAPITEST_PATH}}" .paa_repos/PaddleAPITest
+    ln -sf "{{PYTORCH_PATH}}" .paa_repos/PyTorch
+    echo "External repos setup complete: .paa_repos/Paddle, .paa_repos/PaddleTest, .paa_repos/PaddleAPITest, .paa_repos/PyTorch"
 
 agentic-venv-setup VENV_PATH PADDLE_PATH: 
     #!/usr/bin/env bash
@@ -53,7 +65,7 @@ agentic-run-paddle-unittest VENV_PATH TEST_FILE:
     #!/usr/bin/env bash
     set -euo pipefail
     echo "Running Paddle unittest for {{TEST_FILE}}..."
-    uv run -p "{{VENV_PATH}}" python "{{TEST_FILE}}"
+    uv run --no-project -p "{{VENV_PATH}}" python "{{TEST_FILE}}"
 
 # Run PaddleTest functional test for a specific API
 agentic-run-paddletest VENV_PATH PADDLETEST_PATH TEST_FILE:
@@ -61,7 +73,7 @@ agentic-run-paddletest VENV_PATH PADDLETEST_PATH TEST_FILE:
     set -euo pipefail
     echo "Running PaddleTest for {{TEST_FILE}}..."
     cd "{{PADDLETEST_PATH}}/framework/api/paddlebase"
-    uv run -p "{{VENV_PATH}}" python -m pytest "{{TEST_FILE}}" -v
+    uv run --no-project -p "{{VENV_PATH}}" python -m pytest "{{TEST_FILE}}" -v
 
 # Run PaddleAPITest precision validation (returns log directory path)
 agentic-run-precision-test VENV_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DIR:
@@ -69,7 +81,7 @@ agentic-run-precision-test VENV_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DIR:
     set -euo pipefail
     cd "{{PADDLEAPITEST_PATH}}"
     echo "Running PaddleAPITest with config: {{CONFIG_FILE}}..."
-    uv run -p "{{VENV_PATH}}" python engineV2.py \
+    uv run --no-project -p "{{VENV_PATH}}" python engineV2.py \
         --atol=0 \
         --rtol=0 \
         --accuracy=True \
