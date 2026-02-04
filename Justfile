@@ -78,16 +78,16 @@ quick-start api_name additional_info:
         paddle_path=$PADDLE_PATH, \
         pytorch_path=$PYTORCH_PATH, \
         paddletest_path=$PADDLETEST_PATH, \
-        venv_path=$VENV"
+        venv_path=$VENV_PATH"
 
     opencode \
       --agent precision-alignment \
       --prompt "Start precision alignment workflow for {{ api_name }} \
         (additional info: {{ additional_info }}), with inputs: \
-        paddle_path=$PADDLE, \
-        pytorch_path=$PYTORCH, \
-        paddletest_path=$PADDLETEST, \
-        venv_path=$VENV"
+        paddle_path=$PADDLE_PATH, \
+        pytorch_path=$PYTORCH_PATH, \
+        paddletest_path=$PADDLETEST_PATH, \
+        venv_path=$VENV_PATH"
 
 # ============================================================================
 # Agentic Commands - For Agent Use Only
