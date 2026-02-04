@@ -62,10 +62,12 @@ quick-start api_name additional_info:
     VENV_PATH="${VENV_PATH:-$PADDLE_PATH/venv}"
 
     cd $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}
+    just agentic-venv-setup $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}/venv $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}
+    source .venv/bin/activate
     mkdir -p build
     cd build
     cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPY_VERSION=3.10 -DCUDA_ARCH_NAME=Auto -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja
-    just agentic-venv-setup $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}/venv $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}
+    just agentic-paddle-build-and-install $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}/venv $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}
 
     echo "Successfully setup worktree and created venv"
 
@@ -109,10 +111,12 @@ agentic-repos-setup PADDLE_PATH PADDLETEST_PATH PADDLEAPITEST_PATH PYTORCH_PATH:
 agentic-venv-setup VENV_PATH PADDLE_PATH:
     #!/usr/bin/env bash
     set -euo pipefail
-    uv venv --no-project --relocatable --seed --allow-existing "{{ VENV_PATH }}"
+    if [ ! -d "{{ VENV_PATH }}" ]; then
+        uv venv --no-project --relocatable --seed "{{ VENV_PATH }}"
+    fi
     cd {{ VENV_PATH }}/..
     uv pip install func_timeout pandas pebble pynvml pyyaml typer httpx numpy torchvision torch==2.9.1
-    uv pip install {{ PADDLE_PATH }}/build/python/dist/*.whl --force-reinstall
+    uv pip install -r {{ PADDLE_PATH }}/python/requirements.txt
 
 # Build and install Paddle in virtual environment
 agentic-paddle-build-and-install VENV_PATH PADDLE_PATH:
@@ -121,7 +125,7 @@ agentic-paddle-build-and-install VENV_PATH PADDLE_PATH:
     echo "Building Paddle..."
     cd {{ PADDLE_PATH }}/build
     # Suppress normal ninja output; errors still go to stderr
-    ninja -j"$(nproc)" >/dev/null
+    ninja -j$(nproc)
     echo "Installing Paddle..."
     cd {{ VENV_PATH }}/..
     uv pip install {{ PADDLE_PATH }}/build/python/dist/*.whl --no-deps --force-reinstall
