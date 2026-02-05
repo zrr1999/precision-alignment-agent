@@ -1,0 +1,24 @@
+name: "CI - Static Checks"
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  static-checks:
+    name: static checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install just
+        uses: extractions/setup-just@v2
+
+      - name: Verify just
+        run: just
+
+      - name: Run prek
+        uses: j178/prek-action@v1

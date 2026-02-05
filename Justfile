@@ -26,6 +26,7 @@ setup-repos username:
     git clone https://github.com/{{ username }}/pytorch.git .paa/repos/pytorch
 
 # 快速启动精度对齐流程
+
 # TODO: 移除 additional_info 使用更明确的内容
 quick-start api_name additional_info:
     #!/usr/bin/env bash
@@ -54,22 +55,22 @@ quick-start api_name additional_info:
     cd $PADDLE_PATH
     git switch -c PAA/develop 2>/dev/null || git switch PAA/develop
     git pull upstream develop
-    if [ -d "$PAA_ROOT/.paa/worktree/Paddle_{{api_name}}" ]; then
-        cd "$PAA_ROOT/.paa/worktree/Paddle_{{api_name}}"
+    if [ -d "$PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}" ]; then
+        cd "$PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}"
     else
-        git worktree add $PAA_ROOT/.paa/worktree/Paddle_{{api_name}} -b precision-alignment-agent/{{api_name}}
+        git worktree add $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }} -b precision-alignment-agent/{{ api_name }}
     fi
 
-    echo "PADDLE_PATH: $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}"
+    echo "PADDLE_PATH: $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}"
     VENV_PATH="${VENV_PATH:-$PADDLE_PATH/venv}"
 
-    cd $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}
-    just agentic-venv-setup $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}/venv $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}
+    cd $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}
+    just agentic-venv-setup $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}/venv $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}
     source .venv/bin/activate
     mkdir -p build
     cd build
     cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPY_VERSION=3.10 -DCUDA_ARCH_NAME=Auto -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja
-    just agentic-paddle-build-and-install $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}/venv $PAA_ROOT/.paa/worktree/Paddle_{{api_name}}
+    just agentic-paddle-build-and-install $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}/venv $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}
 
     echo "Successfully setup worktree and created venv"
 
