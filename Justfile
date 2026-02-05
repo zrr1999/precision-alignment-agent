@@ -25,6 +25,7 @@ setup-repos username:
     git clone https://github.com/{{ username }}/pytorch.git .paa/repos/pytorch
 
 # 快速启动精度对齐流程
+# TODO: 移除 additional_info 使用更明确的内容
 quick-start api_name additional_info:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -83,7 +84,7 @@ quick-start api_name additional_info:
     opencode \
       --agent precision-alignment \
       --prompt "Start precision alignment workflow for {{ api_name }} \
-        (additional info: {{ additional_info }}), with inputs: \
+        (session_id: $(date +'%Y%m%d-%H%M%S') , additional info: {{ additional_info }}), with inputs: \
         paddle_path=$PADDLE_PATH, \
         pytorch_path=$PYTORCH_PATH, \
         paddletest_path=$PADDLETEST_PATH, \
