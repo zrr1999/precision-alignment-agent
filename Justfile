@@ -62,7 +62,7 @@ quick-start api_name additional_info:
     fi
 
     echo "PADDLE_PATH: $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}"
-    VENV_PATH="${VENV_PATH:-$PADDLE_PATH/venv}"
+    VENV_PATH="${VENV_PATH:-$PADDLE_PATH/.venv}"
 
     cd $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}
     just agentic-venv-setup $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}/venv $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}
