@@ -14,7 +14,8 @@ setup:
     bun install -g ocx
 
     # 安装系统 skills
-    git clone https://github.com/ast-grep/agent-skill.git ~/.config/opencode/skills/ast-grep
+    bunx skills add PFCCLab/paddle-skills
+    bunx skills add ast-grep/agent-skill
 
 # 初始化仓库
 setup-repos username:
