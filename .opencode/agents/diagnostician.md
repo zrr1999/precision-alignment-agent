@@ -4,7 +4,7 @@ mode: subagent
 model: github-copilot/gpt-5.2-codex
 temperature: 0.05
 skills:
-  - just-workflow
+  - paa-just-workflow
   - paa-knowledge-curation
 tools:
   read: true
@@ -49,7 +49,7 @@ permission:
   **Do not guess** `CUDA_ARCH_NAME`: use the value provided in the task or from the environment (e.g. user says “Ampere” or `nvidia-smi` shows compute cap). If unknown, **ask** or use a safe default only if the task says so.
 - **Build & Install (via Justfile)**: After `cmake` has succeeded and the build directory is ready, run the Justfile recipe from the **agent project root** (the directory containing the `Justfile`):
   `just agentic-paddle-build-and-install ${VENV_PATH} ${PADDLE_PATH}`
-  This will run `ninja` in `${PADDLE_PATH}/build` and install the built wheel into `${VENV_PATH}` using `uv pip`. On failure: **capture the full error block** (the failing command + compiler/linker output, ~10–20 lines) and pass it to Aligner or fix yourself per Fault Triage. See `.opencode/skills/just-workflow.md` for details.
+  This will run `ninja` in `${PADDLE_PATH}/build` and install the built wheel into `${VENV_PATH}` using `uv pip`. On failure: **capture the full error block** (the failing command + compiler/linker output, ~10–20 lines) and pass it to Aligner or fix yourself per Fault Triage. See `.opencode/skills/paa-just-workflow.md` for details.
 
 ## Fault Triage
 

@@ -1,10 +1,10 @@
 ---
-description: V - Precision Validator. Expert at precision alignment verification via PaddleAPITest and precision testing reports. Use Just commands from .opencode/skills/just-workflow.md.
+description: V - Precision Validator. Expert at precision alignment verification via PaddleAPITest and precision testing reports. Use Just commands from .opencode/skills/paa-just-workflow.md.
 mode: subagent
 model: github-copilot/gpt-5.2-codex
 temperature: 0.05
 skills:
-  - just-workflow
+  - paa-just-workflow
   - paa-knowledge-curation
 tools:
   read: true

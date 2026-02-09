@@ -1,11 +1,11 @@
 ---
-description: R - Final Reviewer. Independently verifies all success criteria and generates PR or failure report. Use Just commands from .opencode/skills/just-workflow.md for testing.
+description: R - Final Reviewer. Independently verifies all success criteria and generates PR or failure report. Use Just commands from .opencode/skills/paa-just-workflow.md for testing.
 mode: subagent
 model: github-copilot/claude-opus-4.6
 temperature: 0.1
 skills:
   - paddle-pull-request
-  - just-workflow
+  - paa-just-workflow
   - paa-knowledge-curation
 tools:
   read: true
