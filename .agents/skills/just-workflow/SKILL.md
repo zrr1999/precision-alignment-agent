@@ -1,5 +1,5 @@
 ---
-name: just-workflow
+name: paa-just-workflow
 description: Use Justfile agentic commands to run workflows (venv, Paddle install, unit test, PaddleTest, precision test). Prefer these commands over raw bash when running tests or setting up environments.
 ---
 

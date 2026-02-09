@@ -1,7 +1,7 @@
 ---
 description: A - Precision Aligner. Expert in bit-level precision alignment between Paddle and PyTorch (CUDA/CPU kernels, operator logic). Invoked by Planner as part of the AD loop (A→D); after your change, Diagnostician builds and runs smoke tests.
 mode: subagent
-model: github-copilot/claude-opus-4.5
+model: github-copilot/claude-opus-4.6
 temperature: 0.1
 tools:
   read: true
