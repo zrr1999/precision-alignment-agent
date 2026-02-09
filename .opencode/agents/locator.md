@@ -3,6 +3,8 @@ description: L - Code Locator. Traces API execution paths from high-level API to
 mode: subagent
 model: github-copilot/claude-sonnet-4.5
 temperature: 0.05
+skills:
+  - repomix-explorer
 tools:
   read: true
   glob: true
@@ -12,6 +14,7 @@ tools:
   bash: false
   write: true
   edit: false
+  context7*: true
 ---
 
 # L - Code Locator

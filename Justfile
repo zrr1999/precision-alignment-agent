@@ -12,10 +12,16 @@ setup:
     # 安装 AI coding agent
     bun install -g opencode-ai
     bun install -g ocx
+    bun install -g repomix
 
     # 安装系统 skills
-    bunx skills add PFCCLab/paddle-skills
-    bunx skills add ast-grep/agent-skill
+    bunx skills add PFCCLab/paddle-skills --all -g
+    bunx skills add anthropics/skills -g --skill skill-creator
+    bunx skills add yamadashy/repomix -g --skill repomix-explorer
+    bunx skills add ast-grep/agent-skill --all -g
+
+    # 提示安装全局 mcp
+    echo "For better performance, please manually install global mcp: https://mcp.context7.com/install"
 
 # 初始化仓库
 setup-repos username:
@@ -26,11 +32,10 @@ setup-repos username:
     git clone https://github.com/{{ username }}/pytorch.git .paa/repos/pytorch
 
 # 快速启动精度对齐流程
-
-# TODO: 移除 additional_info 使用更明确的内容
 quick-start api_name additional_info:
     #!/usr/bin/env bash
     set -euo pipefail
+    # TODO: 移除 additional_info 使用更明确的内容
 
     PAA_ROOT=$(pwd)
 
@@ -62,9 +67,10 @@ quick-start api_name additional_info:
     fi
 
     echo "PADDLE_PATH: $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}"
-    VENV_PATH="${VENV_PATH:-$PADDLE_PATH/.venv}"
 
-    cd $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}
+    PADDLE_PATH=$PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}
+    VENV_PATH=$PADDLE_PATH/.venv
+    cd $PADDLE_PATH
     just agentic-venv-setup $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}/venv $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}
     source .venv/bin/activate
     mkdir -p build
@@ -81,6 +87,7 @@ quick-start api_name additional_info:
         paddle_path=$PADDLE_PATH, \
         pytorch_path=$PYTORCH_PATH, \
         paddletest_path=$PADDLETEST_PATH, \
+        paddleapitest_path=$PADDLEAPITEST_PATH, \
         venv_path=$VENV_PATH"
 
     opencode \
@@ -90,6 +97,7 @@ quick-start api_name additional_info:
         paddle_path=$PADDLE_PATH, \
         pytorch_path=$PYTORCH_PATH, \
         paddletest_path=$PADDLETEST_PATH, \
+        paddleapitest_path=$PADDLEAPITEST_PATH, \
         venv_path=$VENV_PATH"
 
 # ============================================================================

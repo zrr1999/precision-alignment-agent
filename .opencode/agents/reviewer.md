@@ -4,6 +4,7 @@ mode: subagent
 model: github-copilot/claude-opus-4.5
 temperature: 0.1
 skills:
+  - paddle-pull-request
   - just-workflow
   - paa-knowledge-curation
 tools:

@@ -43,7 +43,7 @@ permission:
 
 ## PaddleAPITest
 
-- **Run**: `just agentic-run-precision-test ${VENV_PATH} ${PADDLETEST_PATH} {config_file}`. Record log directory in reports.
+- **Run**: `just agentic-run-precision-test ${VENV_PATH} ${PADDLEAPITEST_PATH} {config_file} PAA_test_log/{api_name}/{session_id}/`. Record log directory in reports.
 - **Single config**: `just agentic-run-precision-test ... "paddle.pow(x=Tensor([2,3],\"float32\"), y=2.0)"`
 - **Interpret**: Forward-only error → accumulation/constants/kernel; backward-only → backward kernel; both → fix forward first.
 
@@ -65,13 +65,13 @@ permission:
 ## Knowledge Curation
 
 - **Start (read long-term memory)**: Look up **precision-testing patterns** in `knowledge/commons/` and `.paa/memory/` (for example, common error modes for certain dtype/device combinations, or curated high-signal test subsets) rather than only per-API histories. Output **2–4 concrete testing insights and cautions**; if nothing relevant exists, say “No relevant long-term precision-testing memory” and do not invent content.
-- **During (record this test run)**: Accumulate: log directory path (use the exact path printed by the Just command, e.g. `PAA_test_log/{api_name}/20260129_172345/`), overall pass/fail/crash counts, representative failing configs, inferred patterns (forward/backward, dtype, shape, etc.), and your hypotheses.
+- **During (record this test run)**: Accumulate: log directory path (use the exact path printed by the Just command, e.g. `PAA_test_log/{api_name}/{session_id}/`), overall pass/fail/crash counts, representative failing configs, inferred patterns (forward/backward, dtype, shape, etc.), and your hypotheses.
 - **End (write session-level report)**: Write this information to `.paa/sessions/{session_id}/validator/{api_name}/{baseline|postfix|final}.md`:
   - `session_id` is provided by the caller; use it for all report paths. If missing, you should question the caller for it.
-  - Recommended frontmatter: optional `api`, `category: precision-testing`, `owner: V`, `created_at`, `paddletest_log_dir` (the exact Just log path), `tags`, `summary`;
+  - Recommended frontmatter: optional `api`, `category: precision-testing`, `owner: V`, `created_at`, `tags`, `summary`;
   - Recommended sections: Precision Status Summary, Failing Case Patterns, Recommended Test Subset, Related Reports.
   - If you identify **cross-API reusable** testing patterns (for example, a reusable set of high-signal configs or a recurring precision-drift pattern), propose abstracting them into a long-term topic file under `.paa/memory/{topic}.md` via the `paa-knowledge-curation` skill, where `{topic}` describes the pattern only (no API names).
-- **Rejection as failure report**: Whenever you **reject** (e.g. required paths or configs are missing, or the test environment is not usable), you **must** also write a **rejection report** to `.paa/sessions/{session_id}/validator/{api_name}/rejection.md`. This report is treated as a failure report: the **main Agent (orchestrator)** or Planner receives it like any other validator output. Include: rejection reason (e.g. "config file missing", "PaddleTest path invalid"), and a short summary so the caller can fix and re-invoke. Use the same directory and `session_id` convention; frontmatter may include `category: precision-testing`, `owner: V`, `rejection: true`, `summary`.
+- **Rejection as failure report**: Whenever you **reject** (e.g. required paths or configs are missing, or the test environment is not usable), you **must** also write a **rejection report** to `.paa/sessions/{session_id}/validator/{api_name}/rejection.md`. This report is treated as a failure report: the **main Agent (orchestrator)** or Planner receives it like any other validator output. Include: rejection reason (e.g. "config file missing", "PaddleAPITest path invalid"), and a short summary so the caller can fix and re-invoke. Use the same directory and `session_id` convention; frontmatter may include `category: precision-testing`, `owner: V`, `rejection: true`, `summary`.
 
 ## Iteration & Exit
 

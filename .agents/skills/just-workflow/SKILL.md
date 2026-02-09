@@ -40,13 +40,13 @@ For testing and environment-related operations, **prioritize the Justfile comman
 just
 
 # Environment setup: create venv and install Paddle with dependencies
-just agentic-venv-setup /path/to/venv /path/to/paddle
+just agentic-venv-setup /path/to/venv /path/to/Paddle
 
 # Verify Paddle installation only
-just agentic-paddle-install /path/to/venv /path/to/paddle
+just agentic-paddle-install /path/to/venv /path/to/Paddle
 
 # Paddle internal unit test (TEST_FILE is relative path to test script)
-just agentic-run-paddle-unittest /path/to/venv /path/to/paddle test/legacy_test/test_layer_norm_op.py
+just agentic-run-paddle-unittest /path/to/venv /path/to/Paddle test/legacy_test/test_layer_norm_op.py
 
 # PaddleTest (TEST_FILE is pytest-recognizable module/file, e.g., test_layer_norm.py)
 just agentic-run-paddletest /path/to/venv /path/to/PaddleTest test_layer_norm.py
