@@ -63,7 +63,7 @@ just quick-start <api_name> "<additional_info>"
 ```
 
 - **`api_name`**：当前要对齐的 Paddle API 名称，例如 `paddle.nn.functional.softmax`；
-- **`additional_info`**：额外上下文信息，例如「在哪个模型中暴露出问题、复现脚本位置等」。
+- **`additional_info`**：额外上下文信息，例如「在哪个模型中暴露出问题、复现脚本位置等」，这部分后面考虑用更合适的方式代替。
 
 该命令会完成以下操作：
 

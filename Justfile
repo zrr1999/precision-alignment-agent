@@ -15,10 +15,10 @@ setup:
     bun install -g repomix
 
     # 安装系统 skills
-    bunx skills add PFCCLab/paddle-skills --all -g
-    bunx skills add anthropics/skills -g --skill skill-creator
-    bunx skills add yamadashy/repomix -g --skill repomix-explorer
-    bunx skills add ast-grep/agent-skill --all -g
+    bunx skills add PFCCLab/paddle-skills -g -y --skill "*"
+    bunx skills add anthropics/skills -g -y --skill skill-creator
+    bunx skills add yamadashy/repomix -g -y --skill repomix-explorer
+    bunx skills add ast-grep/agent-skill -g -y --all
 
     # 提示安装全局 mcp
     echo "For better performance, please manually install global mcp: https://mcp.context7.com/install"
@@ -36,6 +36,9 @@ quick-start api_name additional_info:
     #!/usr/bin/env bash
     set -euo pipefail
     # TODO: 移除 additional_info 使用更明确的内容
+
+    # 更新 skills
+    bunx skills update -g --skill "*"
 
     PAA_ROOT=$(pwd)
 
