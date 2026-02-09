@@ -31,7 +31,6 @@ permission:
     "true": allow
     "false": allow
     "cmake*": allow
-    "ninja*": allow
     "make*": allow
     "uv*": allow
     "pytest*": allow
@@ -81,5 +80,5 @@ Interpret: OK / FAILED (N) / ERROR (env/setup).
 
 ## Constraints
 
-- Bash: only permitted commands (cmake, ninja, uv, just). No untrusted scripts. No spawning agents.
+- Bash: only permitted commands (cmake, uv, just). No untrusted scripts. No spawning agents.
 - Secure, minimal fixes only when fixing directly.
