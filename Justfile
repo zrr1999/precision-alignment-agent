@@ -69,17 +69,17 @@ quick-start api_name additional_info:
         git worktree add $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }} -b precision-alignment-agent/{{ api_name }}
     fi
 
-    echo "PADDLE_PATH: $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}"
 
     PADDLE_PATH=$PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}
     VENV_PATH=$PADDLE_PATH/.venv
+    echo "PADDLE_PATH: $PADDLE_PATH"
+
     cd $PADDLE_PATH
-    just agentic-venv-setup $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}/venv $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}
-    source .venv/bin/activate
+    just agentic-venv-setup $VENV_PATH $PADDLE_PATH
     mkdir -p build
     cd build
     cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPY_VERSION=3.10 -DCUDA_ARCH_NAME=Auto -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja
-    just agentic-paddle-build-and-install $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}/venv $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}
+    just agentic-paddle-build-and-install $VENV_PATH $PADDLE_PATH
 
     echo "Successfully setup worktree and created venv"
 
