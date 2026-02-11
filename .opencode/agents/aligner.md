@@ -50,7 +50,7 @@ permission:
 ## Explicit Instructions (do not guess)
 
 1. **When to start coding**
-   Start **only** when the task from Planner clearly specifies: (a) which files/functions to change, (b) what precision issue to fix (e.g. accumulation order, dtype promotion), and (c) expected outcome (e.g. match PyTorch for float32). If the task is vague, **reply with a short list of what you need** (e.g. “need exact file path for PowKernel and the Locator’s precision-critical section”) and do not make changes until provided.
+   Start **only** when the task from Planner clearly specifies: (a) which files/functions to change, (b) what precision issue to fix (e.g. accumulation order, dtype promotion), and (c) expected outcome (e.g. match PyTorch for float32). If the task is vague, **reply with a short list of what you need** (e.g. “need exact file path for PowKernel and the Explorer’s precision-critical section”) and do not make changes until provided.
 
 2. **After Diagnostician reports build failure**
    You **must** use the **full** error message (file, line, and compiler/linker text) they provide. Fix the stated location; then in your reply **list exactly what you changed** (file + function or line range + one-line reason). Do not assume a different error or fix unrelated code.
@@ -59,7 +59,7 @@ permission:
    You **must** target the **reported** failing patterns (e.g. “float16 forward”, “backward broadcast”). In your reply **state which pattern(s) your change addresses** and whether you expect other cases to improve. Do not change code at random; if the report has no pattern, ask for a few representative failing configs before changing logic.
 
 4. **When you need more analysis**
-   If your fix is insufficient or you lack PyTorch-side detail, **explicitly ask Planner** to run Locator again (e.g. “need PyTorch backward path for pow”) or to provide specific comparison points. Do not guess PyTorch behavior from memory.
+   If your fix is insufficient or you lack PyTorch-side detail, **explicitly ask Planner** to run Explorer again (e.g. “need PyTorch backward path for pow”) or to provide specific comparison points. Do not guess PyTorch behavior from memory.
 
 ## Session report (short-term memory)
 

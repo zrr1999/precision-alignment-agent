@@ -52,7 +52,7 @@ Paddle 与 PyTorch API 的对应关系：
 - 行为差异
 - 精度关键的 API 列表
 
-**目标读者**: Planner, Locator
+**目标读者**: Planner, Explorer
 
 ### `best-practices/` - 最佳实践
 

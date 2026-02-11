@@ -28,7 +28,7 @@ Collect **before** first sub-agent call: `api_name`, `paddle_path`, `pytorch_pat
 ## Session (you own it)
 
 - **You** generate a single `session_id` at the **start** of the workflow (e.g. `YYYYMMDD-HHmmss`). This ID identifies one precision-alignment run.
-- **You** pass `session_id` in **every** sub-agent invocation (validator, planner, reviewer). Planner will pass the same `session_id` to locator, aligner, and diagnostician.
+- **You** pass `session_id` in **every** sub-agent invocation (validator, planner, reviewer). Planner will pass the same `session_id` to explorer, aligner, and diagnostician.
 - Sub-agents write their reports under `.paa/sessions/{session_id}/...` and **must not** generate their own; they use the one you provide so all reports for this run stay under the same session.
 
 **When invoking any sub-agent**, always pass: `session_id`, `api_name`, `venv_path`; and where applicable `paddle_path`, `pytorch_path`, `paddletest_path`, `paddleapitest_path`, `test_config_file`. **Validator must receive `paddleapitest_path` and `test_config_file`** (precision run); do **not** pass `paddletest_path` to Validator for precision—that is the wrong repo. Diagnostician and Reviewer receive `paddletest_path` for functional tests. If the task has "shared kernels" or related APIs, pass that context explicitly in the task description.
@@ -39,7 +39,7 @@ Collect **before** first sub-agent call: `api_name`, `paddle_path`, `pytorch_pat
 - **Step 1.2** Call `@planner` with: `api_name`, `paddle_path`, `pytorch_path`, `venv_path`, `paddletest_path`, and **Validator's full output**: baseline report (pass/fail counts, log path), any **rejection information** (for example, why tests could not be run), and any **test-failure details** (failing configs, error samples, log path). If APIs share kernels, say so in the task. Planner runs the **AD loop** (A→D: Aligner then Diagnostician, max 5 iterations).
 - **Step 1.3** Call `@validator` again with the **same** `paddleapitest_path` and `test_config_file` (and other paths). From the new report you **must decide** and **state explicitly**:
   - **Success** (e.g. all pass or only documented expected diffs) → go to **Step 2**.
-  - **Not success, but Planner/Locator have identified another API or shared kernel as the primary precision bottleneck (with explicit dependency on this `api_name`)** → go to **Step 2**; in the task to Reviewer you **must** include: which API/kernel is the true bottleneck, why the current `api_name` depends on it, remaining gaps for this `api_name`, and concrete suggestions for how future work should be retargeted.
+  - **Not success, but Planner/Explorer have identified another API or shared kernel as the primary precision bottleneck (with explicit dependency on this `api_name`)** → go to **Step 2**; in the task to Reviewer you **must** include: which API/kernel is the true bottleneck, why the current `api_name` depends on it, remaining gaps for this `api_name`, and concrete suggestions for how future work should be retargeted.
   - **Not success, and the precision issue is still judged to belong to this `api_name` (no explicit dependent API identified)** → go to **Step 1.2** again (next **PV round**: you drive P then V). In the task to Planner you **must** include: last pass/fail counts, **Validator's rejection or test-failure details** (e.g. which configs failed, log path, branch rejection message), and **concrete suggestions** (e.g. which pattern to fix next, or “focus on float16 GPU”).
   - **For any "Not success" outcome**, you **must** also give a clear, reasonable justification: why full precision repair was not achieved in this PV round, why the chosen next step (Step 2 or another PV round) is appropriate, and what remaining gaps or constraints prevent full success.
 - **Step 2** Call `@reviewer` with: `api_name`, `venv_path`, `paddletest_path`, `paddleapitest_path` (and `test_config_file` if Reviewer re-runs precision tests), and whether Step 1 ended in success, was blocked by a dependent API/kernel, or still has unresolved gaps for this `api_name`. Reviewer does independent verification and produces PR or failure report.
@@ -48,7 +48,7 @@ Collect **before** first sub-agent call: `api_name`, `paddle_path`, `pytorch_pat
 
 | Agent | Role |
 | ------- | ------ |
-| `@planner` | Runs AD loop (A→D, max 5); coordinates @locator (before loop), @aligner, @diagnostician |
+| `@planner` | Runs AD loop (A→D, max 5); coordinates @explorer (before loop), @aligner, @diagnostician |
 | `@validator` | Precision baseline and regression (PaddleAPITest) |
 | `@reviewer` | Final verification, PR or failure report |
 
