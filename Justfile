@@ -69,7 +69,6 @@ quick-start api_name additional_info:
         git worktree add $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }} -b precision-alignment-agent/{{ api_name }}
     fi
 
-
     PADDLE_PATH=$PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}
     VENV_PATH=$PADDLE_PATH/.venv
     echo "PADDLE_PATH: $PADDLE_PATH"
@@ -78,7 +77,6 @@ quick-start api_name additional_info:
     just agentic-venv-setup $VENV_PATH $PADDLE_PATH
     mkdir -p build
     cd build
-    cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPY_VERSION=3.10 -DCUDA_ARCH_NAME=Auto -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja
     just agentic-paddle-build-and-install $VENV_PATH $PADDLE_PATH
 
     echo "Successfully setup worktree and created venv"
@@ -137,8 +135,10 @@ agentic-paddle-build-and-install VENV_PATH PADDLE_PATH:
     #!/usr/bin/env bash
     set -euo pipefail
     echo "Building Paddle..."
+    cd {{ VENV_PATH }}
+    source bin/activate
     cd {{ PADDLE_PATH }}/build
-    # Suppress normal ninja output; errors still go to stderr
+    cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPY_VERSION=3.10 -DCUDA_ARCH_NAME=Auto -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja
     ninja -j$(nproc)
     echo "Installing Paddle..."
     cd {{ VENV_PATH }}/..

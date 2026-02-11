@@ -30,8 +30,6 @@ permission:
     "printf*": allow
     "true": allow
     "false": allow
-    "cmake*": allow
-    "make*": allow
     "uv*": allow
     "pytest*": allow
     "just": allow
@@ -44,12 +42,9 @@ permission:
 
 ## Build & Install
 
-- **Where to run `cmake`**: Run `cmake` from the **build directory** (e.g. `paddle_path/build` or the directory the task specifies). Do **not** run cmake from repo root. If no build dir exists, create it: `mkdir -p {paddle_path}/build && cd {paddle_path}/build`.
-- **Configure**: `cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPY_VERSION=3.10 -DCUDA_ARCH_NAME=Auto -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja`.
-  **Do not guess** `CUDA_ARCH_NAME`: use the value provided in the task or from the environment (e.g. user says “Ampere” or `nvidia-smi` shows compute cap). If unknown, **ask** or use a safe default only if the task says so.
 - **Build & Install (via Justfile)**: After `cmake` has succeeded and the build directory is ready, run the Justfile recipe from the **agent project root** (the directory containing the `Justfile`):
   `just agentic-paddle-build-and-install ${VENV_PATH} ${PADDLE_PATH}`
-  This will run `ninja` in `${PADDLE_PATH}/build` and install the built wheel into `${VENV_PATH}` using `uv pip`. On failure: **capture the full error block** (the failing command + compiler/linker output, ~10–20 lines) and pass it to Aligner or fix yourself per Fault Triage. See `.opencode/skills/paa-just-workflow.md` for details.
+  This will run `cmake` and `ninja` in `${PADDLE_PATH}/build` and install the built wheel into `${VENV_PATH}` using `uv pip`. On failure: **capture the full error block** (the failing command + compiler/linker output, ~10–20 lines) and pass it to Aligner or fix yourself per Fault Triage. See `.opencode/skills/paa-just-workflow.md` for details.
 
 ## Fault Triage
 
@@ -80,5 +75,5 @@ Interpret: OK / FAILED (N) / ERROR (env/setup).
 
 ## Constraints
 
-- Bash: only permitted commands (cmake, uv, just). No untrusted scripts. No spawning agents.
+- Bash: only permitted commands (uv, just). No untrusted scripts. No spawning agents.
 - Secure, minimal fixes only when fixing directly.

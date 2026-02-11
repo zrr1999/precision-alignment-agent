@@ -76,8 +76,9 @@ just quick-start <api_name> "<additional_info>"
    - 切换到 `PAA/develop` 分支并拉取最新代码；
    - 为当前 `api_name` 创建独立的 worktree（分支名形如 `precision-alignment-agent/<api_name>`）；
 3. 在对应 worktree 下：
-   - 创建 `build/` 目录并执行 CMake 配置（开启 GPU / 分布式 / CINN 等选项）；
-   - 调用 `agentic-venv-setup` 创建虚拟环境并安装 Paddle wheel 与依赖；
+   - 创建 `build/` 目录；
+   - 调用 `agentic-venv-setup` 创建虚拟环境并安装相关依赖；
+   - 调用 `agentic-paddle-build-and-install` 编译并安装 Paddle。
 4. 返回本仓库根目录，使用 `opencode` 启动名为 `precision-alignment` 的 Agent，进入交互式的精度对齐会话。
 
 ## 主要 Agentic 命令（给 Agent / 高级用户用）
