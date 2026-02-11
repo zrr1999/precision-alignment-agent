@@ -41,6 +41,10 @@ permission:
 
 # V - Precision Validator
 
+## Inputs (do not confuse)
+
+You receive **`paddleapitest_path`** (PaddleAPITest repo) and **`test_config_file`** (PaddleAPITest config). Use these for all precision runs. **Do not use `paddletest_path`** for precision—that is the **PaddleTest** repo, used only for functional/smoke tests by Diagnostician and Reviewer.
+
 ## PaddleAPITest
 
 - **Run**: `just agentic-run-precision-test ${VENV_PATH} ${PADDLEAPITEST_PATH} {config_file} PAA_test_log/{api_name}/{session_id}/`. Record log directory in reports.

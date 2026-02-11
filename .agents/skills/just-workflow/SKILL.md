@@ -5,7 +5,9 @@ description: Use Justfile agentic commands to run workflows (venv, Paddle instal
 
 # Just Workflow Skill
 
-For testing and environment-related operations, **prioritize the Justfile commands defined in this skill**. The `Justfile` is located at the project root. **Validator** uses `agentic-run-precision-test` for precision alignment verification; **Diagnostician** uses `agentic-run-paddle-unittest` and `agentic-run-paddletest` for functional/smoke tests.
+For testing and environment-related operations, **prioritize the Justfile commands defined in this skill**. The `Justfile` is located at the project root.
+
+**Do not confuse PaddleTest with PaddleAPITest:** they are different repos and different commands. **PaddleTest** = functional tests (`agentic-run-paddletest`, `PADDLETEST_PATH`) — used by Diagnostician and Reviewer. **PaddleAPITest** = precision validation (`agentic-run-precision-test`, `PADDLEAPITEST_PATH`) — used **only** by Validator. Passing the wrong path (e.g. PaddleTest path to Validator) will cause failures.
 
 ## Where to run just (mandatory)
 
