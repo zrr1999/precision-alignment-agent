@@ -60,7 +60,8 @@ just agentic-run-precision-test /path/to/venv /path/to/PaddleAPITest error_confi
 ## Notes
 
 - **Use only `agentic-` recipes**: These are for Agent use; recipes without this prefix are for human use.
-- **Environment variables**: All agentic commands depend on the caller having set `VENV_PATH`, `PADDLE_PATH`, `PADDLETEST_PATH`, `PADDLEAPITEST_PATH`, etc. (see each command's parameters).
+- **Environment variables**: All agentic commands depend on the caller having set `VENV_PATH`, `PADDLE_PATH`, `PADDLETEST_PATH`, `PADDLEAPITEST_PATH`, etc. (see each command's parameters). You may add env vars before `just` (e.g. `VAR=value just agentic-...`) when needed.
+- **Built-in env vars in Justfile**: `agentic-run-paddle-unittest`, `agentic-run-paddletest`, and `agentic-run-precision-test` already set `FLAGS_use_accuracy_compatible_kernel` internally. Do **not** add it again.
 - **TEST_FILE distinction**: For Paddle internal unit tests, it's the full Python file path; for PaddleTest, it's a pytest-recognizable module/filename.
 - **Troubleshooting**: Check command output for errors, and verify that passed paths match the parameter meanings defined in the root `Justfile`.
 - **Precision test (Validator)**: Results and logs go to the `LOG_DIR` (or default) under PaddleAPITest; error files include `accuracy_*_error.txt` / `accuracy_*_kernel.txt`. Use the log directory path reported by the command in session reports.

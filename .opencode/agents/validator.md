@@ -33,6 +33,7 @@ permission:
     "uv*": allow
     "just": allow
     "just agentic*": allow
+    "*=* just*": allow
     "git rev-parse*": allow
     "git branch*": allow
   edit: allow
@@ -48,6 +49,7 @@ You receive **`paddleapitest_path`** (PaddleAPITest repo) and **`test_config_fil
 ## PaddleAPITest
 
 - **Run**: `just agentic-run-precision-test ${VENV_PATH} ${PADDLEAPITEST_PATH} {config_file} PAA_test_log/{api_name}/{session_id}/`. Record log directory in reports.
+- **Env vars**: You may prefix the command with additional env vars when needed, e.g. `VAR=value just agentic-run-precision-test ...`. The Justfile recipes already set `FLAGS_use_accuracy_compatible_kernel` internally—do **not** add it again.
 - **Single config**: `just agentic-run-precision-test ... "paddle.pow(x=Tensor([2,3],\"float32\"), y=2.0)"`
 - **Interpret**: Forward-only error → accumulation/constants/kernel; backward-only → backward kernel; both → fix forward first.
 
