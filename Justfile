@@ -18,7 +18,7 @@ setup:
     bunx skills add PFCCLab/paddle-skills -g -y --skill "*"
     bunx skills add anthropics/skills -g -y --skill skill-creator
     bunx skills add yamadashy/repomix -g -y --skill repomix-explorer
-    bunx skills add ast-grep/agent-skill -g -y --all
+    bunx skills add ast-grep/agent-skill -g -y --skill "*"
 
     # 提示安装全局 mcp
     echo "For better performance, please manually install global mcp: https://mcp.context7.com/install"
@@ -108,6 +108,7 @@ quick-start api_name additional_info:
 # All commands require environment variables to be set.
 # ============================================================================
 
+# TODO
 agentic-repos-setup PADDLE_PATH PADDLETEST_PATH PADDLEAPITEST_PATH PYTORCH_PATH:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -172,6 +173,12 @@ agentic-run-paddletest VENV_PATH PADDLETEST_PATH TEST_FILE:
     echo "Running PaddleTest(FLAGS_use_accuracy_compatible_kernel=1) for {{ TEST_FILE }}..."
     FLAGS_use_accuracy_compatible_kernel=1 \
     uv run --no-project -p "{{ VENV_PATH }}" python -m pytest "{{ TEST_FILE }}" -v
+
+agentic-get-precision-test-configs API_NAME PADDLEAPITEST_PATH:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cat {{PADDLEAPITEST_PATH}}/.api_config/paa-v0/paa/paa.txt | grep {{API_NAME}} > .paa/config/{{API_NAME}}.txt
+    echo "config file is saved to $(pwd)/.paa/config/{{API_NAME}}.txt"
 
 # Run PaddleAPITest precision validation (returns log directory path)
 agentic-run-precision-test VENV_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DIR:
