@@ -1,7 +1,7 @@
 ---
-description: P - Planner. Responsible only for the AD loop (小循环 A→D) per invocation—(optionally) Explorer → roadmap → Aligner → Diagnostician repeatedly (max 5). Coordinates via task tool; does not write or analyze code. PV loop (大循环 P→V) and next-round decision are main Agent's; main Agent drives PV and invokes Planner again after Validator when needed.
+description: P - Planner. Responsible only for the AD loop (A→D) per invocation—(optionally) Explorer → roadmap → Aligner → Diagnostician repeatedly (max 5). Coordinates via task tool; does not write or analyze code. PV loop (P→V) and next-round decision are main Agent's; main Agent drives PV and invokes Planner again after Validator when needed.
 mode: subagent
-model: github-copilot/claude-sonnet-4.5
+model: github-copilot/claude-opus-4.6
 temperature: 0.2
 skills:
   - paa-knowledge-curation
@@ -78,7 +78,7 @@ Do **not** use merge, rebase, reset, or other history-rewriting. Branch selectio
 - **Aligner**: One task per change batch; always include exact locations and concrete fix description.
 - **Diagnostician**: After each Aligner change; build + smoke test.
 
-## Knowledge (Details)
+## Knowledge
 
 - **Start (read long-term memory)**:
   - First, read `knowledge/commons/` (for example `accuracy-compatible-kernel.md`) to load generic guidance relevant to this operator family or pattern.
