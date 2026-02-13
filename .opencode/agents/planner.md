@@ -36,6 +36,7 @@ permission:
   task:
     "*": deny
     "explorer": allow
+    "learner": allow
     "aligner": allow
     "diagnostician": allow
 ---
@@ -63,8 +64,9 @@ Do **not** use merge, rebase, reset, or other history-rewriting. Branch selectio
 - **Otherwise** (task includes baseline pass/fail or test-failure details), proceed:
 
 0. **Load knowledge**: Read `knowledge/commons/` and search `.paa/memory/` by topic (no API names). Produce 5–10 bullet points of actionable guidance; if nothing relevant, say "No relevant long-term memory found".
-1. **Explorer** (if not already provided): Spawn **two** separate tasks—Paddle and PyTorch—with `paddle_path`/`pytorch_path` and `api_name`. Merge the two reports.
-2. **Roadmap**: From Explorer report + knowledge, write an ordered fix plan with success criteria. Prioritize by precision severity, impact, risk, dependencies; for shared kernels, decide align-together vs separate.
+1. **Learner** (optional, for prior art): Spawn with `api_name` (and optional `session_id`) to find and study related precision-alignment PRs. Use the prior-art report to inform roadmap and fix strategy.
+2. **Explorer** (if not already provided): Spawn **two** separate tasks—Paddle and PyTorch—with `paddle_path`/`pytorch_path` and `api_name`. Merge the two reports.
+3. **Roadmap**: From Explorer report + knowledge (+ Learner prior-art if available), write an ordered fix plan with success criteria. Prioritize by precision severity, impact, risk, dependencies; for shared kernels, decide align-together vs separate.
    If these inputs show that the precision issue **primarily belongs to another API or shared kernel** rather than `{api_name}`, you **must**: (a) explicitly name that API/kernel, (b) explain why `{api_name}` depends on it and how the precision gap propagates, and (c) **stop the small loop here** (do not invoke Aligner or Diagnostician) and return a clear summary of the situation to the caller so they can retarget the alignment work.
 4. **Aligner**: Spawn **only after** a concrete plan. Task **must** include: `api_name`; **exact file(s) and function(s)**; **what to fix** (e.g. match PyTorch accumulation order in PowKernel float32); precision-critical points from Explorer. No vague "align precision" request.
 5. **Diagnostician**: After each Aligner change, spawn with build dir, `api_name`, and instruction to run build then smoke test (`just agentic-run-paddle-unittest`).
@@ -74,6 +76,7 @@ Do **not** use merge, rebase, reset, or other history-rewriting. Branch selectio
 
 ## Sub-Agent Rules
 
+- **Learner**: Optional; spawn with `api_name` and `session_id` to gather prior art; use report in roadmap.
 - **Explorer**: Two tasks (Paddle + PyTorch), merge reports before roadmap.
 - **Aligner**: One task per change batch; always include exact locations and concrete fix description.
 - **Diagnostician**: After each Aligner change; build + smoke test.
@@ -86,7 +89,7 @@ Do **not** use merge, rebase, reset, or other history-rewriting. Branch selectio
   - Produce **5–10 bullet points** of actionable guidance: recommended flags, typical precision-gap patterns, common pitfalls, and proven fix/verification strategies. If nothing relevant is found, explicitly say “No relevant long-term memory found” and do not invent content.
 - **End (write session-level report only)**:
   - Write this task’s overall precision-comparison conclusions, key decisions, trade-offs, and remaining gaps to `.paa/sessions/{session_id}/planner/{api_name}/{short-title}.md`.
-  - `session_id` is provided by the main Agent (orchestrator); use it for all report paths and pass it to explorer, aligner, and diagnostician. Do not ask the caller for it; if missing, state it in your reply and proceed with what you have.
+  - `session_id` is provided by the main Agent (orchestrator); use it for all report paths and pass it to learner, explorer, aligner, and diagnostician. Do not ask the caller for it; if missing, state it in your reply and proceed with what you have.
   - Suggested sections: Summary & Outcome, PyTorch vs Paddle Differences, Fix Strategy, Validation Results, Related Reports, Open Issues.
   - If you discover **cross-API reusable** knowledge (for example, a kernel-family-wide precision pattern), call the `paa-knowledge-curation` skill at the end of the task to append an abstracted summary to `.paa/memory/{topic}.md`, where `{topic}` names the concept/pattern (and does **not** include specific API names).
 
