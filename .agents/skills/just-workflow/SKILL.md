@@ -17,7 +17,9 @@ For testing and environment-related operations, **prioritize the Justfile comman
 
 | Scenario | Command | Parameters | Description |
 |----------|---------|------------|-------------|
+| Repos Setup | `just agentic-repos-setup` | `PADDLE_PATH` `PADDLETEST_PATH` `PADDLEAPITEST_PATH` `PYTORCH_PATH` | Link external repos into .paa/worktree/ (TODO: pending) |
 | Environment Setup | `just agentic-venv-setup` | `VENV_PATH` `PADDLE_PATH` | Create/update relocatable venv, install dependencies and Paddle whl |
+| Get Precision Config | `just agentic-get-precision-test-configs` | `API_NAME` `PADDLEAPITEST_PATH` | Extract API configs from paa.txt to .paa/config/{API_NAME}.txt |
 | Paddle Install | `just agentic-paddle-install` | `VENV_PATH` `PADDLE_PATH` | Create venv in specified directory and install only Paddle whl (no other dependencies) |
 | Paddle Unit Test | `just agentic-run-paddle-unittest` | `VENV_PATH` `TEST_FILE` | Run Paddle internal unit tests using specified venv (directly execute Python test file) |
 | PaddleTest | `just agentic-run-paddletest` | `VENV_PATH` `PADDLETEST_PATH` `TEST_FILE` | Run specified test file with pytest under `framework/api/paddlebase` in PaddleTest |
@@ -46,6 +48,9 @@ just agentic-venv-setup /path/to/venv /path/to/Paddle
 
 # Verify Paddle installation only
 just agentic-paddle-install /path/to/venv /path/to/Paddle
+
+# Get precision test configs for an API (output: .paa/config/{api_name}.txt)
+just agentic-get-precision-test-configs paddle.pow /path/to/PaddleAPITest
 
 # Paddle internal unit test (TEST_FILE is relative path to test script)
 just agentic-run-paddle-unittest /path/to/venv /path/to/Paddle test/legacy_test/test_layer_norm_op.py

@@ -46,6 +46,8 @@ permission:
 
 You receive **`paddleapitest_path`** (PaddleAPITest repo) and **`test_config_file`** (PaddleAPITest config). Use these for all precision runs. **Do not use `paddletest_path`** for precision—that is the **PaddleTest** repo, used only for functional/smoke tests by Diagnostician and Reviewer.
 
+**When `test_config_file` is missing**: Run `just agentic-get-precision-test-configs {api_name} ${PADDLEAPITEST_PATH}` from the agent project root to extract configs from PaddleAPITest paa.txt into `.paa/config/{api_name}.txt`. Use that file as `test_config_file` for baseline and post-fix runs.
+
 ## PaddleAPITest
 
 - **Run**: `just agentic-run-precision-test ${VENV_PATH} ${PADDLEAPITEST_PATH} {config_file} PAA_test_log/{api_name}/{session_id}/`. Record log directory in reports.

@@ -108,7 +108,7 @@ quick-start api_name additional_info:
 # All commands require environment variables to be set.
 # ============================================================================
 
-# TODO
+# Link external repos (Paddle, PaddleTest, PaddleAPITest, PyTorch) into .paa/worktree/ for agent use. TODO: implementation pending.
 agentic-repos-setup PADDLE_PATH PADDLETEST_PATH PADDLEAPITEST_PATH PYTORCH_PATH:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -121,6 +121,7 @@ agentic-repos-setup PADDLE_PATH PADDLETEST_PATH PADDLEAPITEST_PATH PYTORCH_PATH:
     # ln -sf "{{ PYTORCH_PATH }}" .paa/worktree/PyTorch
     # echo "External repos setup complete: .paa/worktree/Paddle, .paa/worktree/PaddleTest, .paa/worktree/PaddleAPITest, .paa/worktree/PyTorch"
 
+# Create or update relocatable venv with Paddle deps (torch, func_timeout, etc.) and Paddle python/requirements.txt.
 agentic-venv-setup VENV_PATH PADDLE_PATH:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -174,6 +175,7 @@ agentic-run-paddletest VENV_PATH PADDLETEST_PATH TEST_FILE:
     FLAGS_use_accuracy_compatible_kernel=1 \
     uv run --no-project -p "{{ VENV_PATH }}" python -m pytest "{{ TEST_FILE }}" -v
 
+# Extract precision test configs for an API from PaddleAPITest paa.txt into .paa/config/{API_NAME}.txt for Validator use.
 agentic-get-precision-test-configs API_NAME PADDLEAPITEST_PATH:
     #!/usr/bin/env bash
     set -euo pipefail
