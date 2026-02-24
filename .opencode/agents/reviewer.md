@@ -37,6 +37,7 @@ permission:
     "git*": allow
     "gh*": allow
     "just": allow
+    "sed*": allow
     "just agentic*": allow
   edit: allow
   write: allow
@@ -65,12 +66,13 @@ Do **not** rely solely on others' reports. You **must** run the checks below you
 ## PR Process
 
 1. **Pre-PR**: `git status` (clean); `git log --oneline -10` (Planner commits, `[PAA]` format).
-2. **Branch**: Use Planner branch `precision-alignment-agent/{api_name}`. If remote conflict: **first** run `git branch -r | grep precision-alignment-agent/{api_name}` to see existing suffixes; then create branch `precision-alignment-agent/{api_name}-N` where **N is the smallest positive integer not already used** (e.g. if `-2` exists, use `-3`). Cherry-pick commits if needed.
-3. **Push**: `git push origin precision-alignment-agent/{api_name}`. If rejected: rebase or new suffixed branch; no force push unless confirmed.
-4. **Title**: `[PAA][{type}] {title}`. Types: `Precision Depth Alignment` (default), `Precision Functional Alignment`, `Precision Performance Alignment`. <80 chars, specific API/kernel.
-5. **Body** (Chinese): Per `.github/PULL_REQUEST_TEMPLATE.md`. Sections: 修改内容, 精度测试结果 (baseline/post-fix/改进/剩余问题), CI/CE 测试结果, 向后兼容性, 未完成工作 (if partial). Partial success: add ⚠️ note at top.
-6. **Create**: `gh pr create --title "..." --body "$(cat pr_description.md)" --base develop`. If PR exists: update body or create new branch+PR and document relationship.
-7. **Post-PR**: Return PR URL; note any immediate CI failures.
+2. **Commit hygiene** (when needed): If `git log` shows many small/redundant commits (e.g. >5, or messages like "fix", "wip", "update", "tmp"), merge them into 1–3 logical commits before push. Prefer `git reset --soft HEAD~N` then `git commit -m "[PAA][{type}] {clear_summary}"` for squashing; or `GIT_SEQUENCE_EDITOR="sed -i.bak '2,\$s/^pick/squash/'" git rebase -i HEAD~N` when non-interactive. Keep `[PAA]` prefix in final message(s).
+3. **Branch**: Use Planner branch `precision-alignment-agent/{api_name}`. If remote conflict: **first** run `git branch -r | grep precision-alignment-agent/{api_name}` to see existing suffixes; then create branch `precision-alignment-agent/{api_name}-N` where **N is the smallest positive integer not already used** (e.g. if `-2` exists, use `-3`). Cherry-pick commits if needed.
+4. **Push**: `git push origin precision-alignment-agent/{api_name}`. If rejected: rebase or new suffixed branch; no force push unless confirmed.
+5. **Title**: `[PAA][{type}] {title}`. Types: `Precision Depth Alignment` (default), `Precision Functional Alignment`, `Precision Performance Alignment`. <80 chars, specific API/kernel.
+6. **Body** (Chinese): Per `.github/PULL_REQUEST_TEMPLATE.md`. Sections: 修改内容, 精度测试结果 (baseline/post-fix/改进/剩余问题), CI/CE 测试结果, 向后兼容性, 未完成工作 (if partial). Partial success: add ⚠️ note at top.
+7. **Create**: `gh pr create --title "..." --body "$(cat pr_description.md)" --base develop`. If PR exists: update body or create new branch+PR and document relationship.
+8. **Post-PR**: Return PR URL; note any immediate CI failures.
 
 ## Failure Report (when no PR)
 
