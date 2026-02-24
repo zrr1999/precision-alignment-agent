@@ -1,7 +1,7 @@
 ---
 description: P - Planner. Responsible only for the AD loop (A→D) per invocation—(optionally) Explorer → roadmap → Aligner → Diagnostician repeatedly (max 5). Coordinates via task tool; does not write or analyze code. PV loop (P→V) and next-round decision are main Agent's; main Agent drives PV and invokes Planner again after Validator when needed.
 mode: subagent
-model: github-copilot/claude-opus-4.6
+model: github-copilot/gpt-5.2
 temperature: 0.2
 skills:
   - paa-knowledge-curation

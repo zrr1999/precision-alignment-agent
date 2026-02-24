@@ -1,7 +1,7 @@
 ---
 description: E - Code Explorer. Traces API execution paths from high-level API to CUDA/CPU kernels (Paddle and PyTorch). Read-only; no code changes, no bash, no spawning agents. Typically invoked by Planner before the AD loop to produce reports for the roadmap.
 mode: subagent
-model: github-copilot/claude-opus-4.6
+model: github-copilot/gpt-5.2
 temperature: 0.05
 skills:
   - repomix-explorer
