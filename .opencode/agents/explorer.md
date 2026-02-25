@@ -14,7 +14,7 @@ tools:
   bash: false
   write: true
   edit: false
-  context7*: true
+  context7: true
 ---
 
 # E - Code Explorer

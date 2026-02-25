@@ -1,7 +1,7 @@
 ---
 description: L - PR Learner. Finds and studies existing **Paddle** PRs (precision alignment, similar API fixes); extracts fix patterns for Planner and Aligner. Read-only; no code changes, no bash. Typically invoked by Planner before or alongside Explorer to gather prior art.
 mode: subagent
-model: github-copilot/gpt-5.2-codex
+model: github-copilot/gpt-5.2
 temperature: 0.1
 skills:
   - paa-knowledge-curation
@@ -14,6 +14,8 @@ tools:
   write: true
   edit: false
   bash: false
+  context7: true
+  gh_grep: true
 ---
 
 # L - PR Learner

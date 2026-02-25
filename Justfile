@@ -73,6 +73,9 @@ quick-start api_name additional_info:
     VENV_PATH=$PADDLE_PATH/.venv
     echo "PADDLE_PATH: $PADDLE_PATH"
 
+    cd $PADDLEAPITEST_PATH
+    bash auto_get_api_config.sh paa
+
     cd $PADDLE_PATH
     just agentic-venv-setup $VENV_PATH $PADDLE_PATH
     mkdir -p build
