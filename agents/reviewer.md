@@ -1,40 +1,39 @@
 ---
-description: R - Final Reviewer. Independently verifies all success criteria and generates PR or failure report.
-mode: subagent
-model: github-copilot/claude-opus-4.6
-temperature: 0.1
+name: reviewer
+description: >
+  Final Reviewer. Independently verifies all success criteria
+  and generates PR or failure report.
+role: subagent
+
+model:
+  tier: reasoning
+  temperature: 0.1
+
 skills:
   - paddle-pull-request
   - paa-just-workflow
   - paa-knowledge-curation
-tools:
-  read: true
-  glob: true
-  grep: true
-  bash: true
-  write: true
-  edit: true
-  webfetch: true
-permission:
-  bash:
-    "*": deny
-    "ls*": allow
-    "pwd": allow
-    "grep*": allow
-    "cat*": allow
-    "head*": allow
-    "tail*": allow
-    "wc*": allow
-    "which*": allow
-    "echo*": allow
-    "uv*": allow
-    "git*": allow
-    "gh*": allow
-    "just": allow
-    "just agentic*": allow
-    "sed*": allow
-  edit: allow
-  write: allow
+
+capabilities:
+  - read-code
+  - write-code
+  - web-read
+  - bash:
+      - "ls*"
+      - "pwd"
+      - "grep*"
+      - "cat*"
+      - "head*"
+      - "tail*"
+      - "wc*"
+      - "which*"
+      - "echo*"
+      - "uv*"
+      - "git*"
+      - "gh*"
+      - "just"
+      - "just agentic*"
+      - "sed*"
 ---
 
 # R - Final Reviewer
@@ -54,9 +53,9 @@ Do **not** rely solely on previous reports. Run these checks yourself:
 
 ## Value Assessment
 
-- **Full success**: All checks pass → generate PR
-- **Partial success**: Significant improvement, documented gaps → PR with limitations
-- **Insufficient**: <50% improvement or critical failures → failure report only
+- **Full success**: All checks pass -> generate PR
+- **Partial success**: Significant improvement, documented gaps -> PR with limitations
+- **Insufficient**: <50% improvement or critical failures -> failure report only
 
 ## PR Process
 

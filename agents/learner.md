@@ -1,21 +1,23 @@
 ---
-description: L - PR Learner. Finds and studies existing Paddle PRs (precision alignment, similar API fixes); extracts fix patterns. Read-only.
-mode: subagent
-model: github-copilot/claude-opus-4.6
-temperature: 0.1
+name: learner
+description: >
+  PR Learner. Finds and studies existing Paddle PRs (precision alignment,
+  similar API fixes); extracts fix patterns. Read-only.
+role: subagent
+
+model:
+  tier: reasoning
+  temperature: 0.1
+
 skills:
   - paa-knowledge-curation
-tools:
-  read: true
-  glob: true
-  grep: true
-  webfetch: true
-  websearch: true
-  write: true
-  edit: false
-  bash: false
-  context7: true
-  gh_grep: true
+
+capabilities:
+  - read-code
+  - write-report
+  - web-access
+  - context7
+  - gh-search
 ---
 
 # L - PR Learner

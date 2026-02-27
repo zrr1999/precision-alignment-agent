@@ -1,42 +1,41 @@
 ---
-description: D - Diagnostician. Builds Paddle, runs smoke tests, diagnoses failures, commits successful changes. The build-and-test workhorse.
-mode: subagent
-model: github-copilot/gpt-5.2-codex
-temperature: 0.05
+name: diagnostician
+description: >
+  Diagnostician. Builds Paddle, runs smoke tests, diagnoses failures,
+  commits successful changes. The build-and-test workhorse.
+role: subagent
+
+model:
+  tier: coding
+  temperature: 0.05
+
 skills:
   - paa-just-workflow
   - paa-knowledge-curation
-tools:
-  read: true
-  glob: true
-  grep: true
-  bash: true
-  write: true
-  edit: true
-permission:
-  bash:
-    "*": deny
-    "nproc": allow
-    "ls*": allow
-    "pwd": allow
-    "grep*": allow
-    "cat*": allow
-    "head*": allow
-    "tail*": allow
-    "wc*": allow
-    "which*": allow
-    "echo*": allow
-    "uv*": allow
-    "just": allow
-    "just agentic*": allow
-    "git status*": allow
-    "git diff*": allow
-    "git add*": allow
-    "git commit*": allow
-    "git rev-parse*": allow
-    "git log*": allow
-  edit: allow
-  write: allow
+
+capabilities:
+  - read-code
+  - write-code
+  - bash:
+      - "nproc"
+      - "ls*"
+      - "pwd"
+      - "grep*"
+      - "cat*"
+      - "head*"
+      - "tail*"
+      - "wc*"
+      - "which*"
+      - "echo*"
+      - "uv*"
+      - "just"
+      - "just agentic*"
+      - "git status*"
+      - "git diff*"
+      - "git add*"
+      - "git commit*"
+      - "git rev-parse*"
+      - "git log*"
 ---
 
 # D - Diagnostician

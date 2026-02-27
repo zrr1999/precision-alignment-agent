@@ -1,18 +1,20 @@
 ---
-description: A - Precision Aligner. Expert in bit-level precision alignment between Paddle and PyTorch (CUDA/CPU kernels, operator logic). Makes targeted code changes.
-mode: subagent
-model: github-copilot/gpt-5.2-codex
-temperature: 0.1
-tools:
-  read: true
-  glob: true
-  grep: true
-  bash: false
-  write: true
-  edit: true
-permission:
-  edit: allow
-  write: allow
+name: aligner
+description: >
+  Precision Aligner. Expert in bit-level precision alignment between
+  Paddle and PyTorch (CUDA/CPU kernels, operator logic). Makes targeted
+  code changes.
+role: subagent
+
+model:
+  tier: coding
+  temperature: 0.1
+
+skills: []
+
+capabilities:
+  - read-code
+  - write-code
 ---
 
 # A - Precision Aligner

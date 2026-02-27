@@ -1,37 +1,37 @@
 ---
-description: V - Precision Validator. Runs PaddleAPITest precision validation, analyzes results, reports pass/fail patterns.
-mode: subagent
-model: github-copilot/gpt-5.2-codex
-temperature: 0.05
+name: validator
+description: >
+  Precision Validator. Runs PaddleAPITest precision validation,
+  analyzes results, reports pass/fail patterns.
+role: subagent
+
+model:
+  tier: coding
+  temperature: 0.05
+
 skills:
   - paa-just-workflow
   - paa-knowledge-curation
-tools:
-  read: true
-  glob: true
-  grep: true
-  bash: true
-  write: true
-  edit: false
-permission:
-  bash:
-    "*": deny
-    "ls*": allow
-    "pwd": allow
-    "grep*": allow
-    "cat*": allow
-    "head*": allow
-    "tail*": allow
-    "wc*": allow
-    "which*": allow
-    "echo*": allow
-    "uv*": allow
-    "just": allow
-    "just agentic*": allow
-    "*=* just*": allow
-    "git rev-parse*": allow
-    "git branch*": allow
-  write: allow
+
+capabilities:
+  - read-code
+  - write-report
+  - bash:
+      - "ls*"
+      - "pwd"
+      - "grep*"
+      - "cat*"
+      - "head*"
+      - "tail*"
+      - "wc*"
+      - "which*"
+      - "echo*"
+      - "uv*"
+      - "just"
+      - "just agentic*"
+      - "*=* just*"
+      - "git rev-parse*"
+      - "git branch*"
 ---
 
 # V - Precision Validator
@@ -52,7 +52,7 @@ Do NOT add `FLAGS_use_accuracy_compatible_kernel` - the Justfile handles it.
 ## Baseline & Validation
 
 - **Baseline** (first run): Run full config set. Record: total configs, passed, failed, crashed. Sample failing cases.
-- **Post-fix** (after changes): Use the **exact same** config. Report: baseline passed → post-fix passed, regressions, remaining failures.
+- **Post-fix** (after changes): Use the **exact same** config. Report: baseline passed -> post-fix passed, regressions, remaining failures.
 - **Sampling**: Group failures by dtype/shape/device; pick 3-5 representatives per group.
 
 ## Pattern Recognition
@@ -60,7 +60,7 @@ Do NOT add `FLAGS_use_accuracy_compatible_kernel` - the Justfile handles it.
 | Pattern | Example |
 |---------|---------|
 | Accumulation order | (a+b)+c vs a+(b+c) in float32 |
-| Dtype promotion | PyTorch float16→float32, Paddle not |
+| Dtype promotion | PyTorch float16->float32, Paddle not |
 | Numerical constants | epsilon/threshold differences |
 | CUDA precision | `__fdividef` vs `/` |
 
