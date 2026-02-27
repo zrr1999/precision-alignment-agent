@@ -138,10 +138,10 @@ alignment-start api_name additional_prompt:
     bash auto_get_api_config.sh paa
 
     cd $PADDLE_PATH
-    just agentic-venv-setup $VENV_PATH $PADDLE_PATH
+    just agentic-venv-setup $PADDLE_PATH
     mkdir -p build
     cd build
-    just agentic-paddle-build-and-install $VENV_PATH $PADDLE_PATH
+    just agentic-paddle-build-and-install $PADDLE_PATH
 
     echo "Successfully setup worktree and created venv"
 
@@ -186,58 +186,65 @@ agentic-repos-setup PADDLE_PATH PADDLETEST_PATH PADDLEAPITEST_PATH PYTORCH_PATH:
     # echo "External repos setup complete: .paa/worktree/Paddle, .paa/worktree/PaddleTest, .paa/worktree/PaddleAPITest, .paa/worktree/PyTorch"
 
 # Create or update relocatable venv with Paddle deps (torch, func_timeout, etc.) and Paddle python/requirements.txt.
-agentic-venv-setup VENV_PATH PADDLE_PATH:
+agentic-venv-setup PADDLE_PATH:
     #!/usr/bin/env bash
     set -euo pipefail
-    if [ ! -d "{{ VENV_PATH }}" ]; then
-        uv venv --no-project --relocatable --seed "{{ VENV_PATH }}"
+    VENV_PATH="{{ PADDLE_PATH }}/.venv"
+    if [ ! -d "$VENV_PATH" ]; then
+        uv venv --no-project --relocatable --seed "$VENV_PATH"
     fi
-    cd {{ VENV_PATH }}/..
+    cd {{ PADDLE_PATH }}/
+    uvx prek install
+
+    cd "$VENV_PATH/.."
     uv pip install func_timeout pandas pebble pynvml pyyaml typer httpx numpy torchvision torch==2.9.1
     uv pip install -r {{ PADDLE_PATH }}/python/requirements.txt
 
 # Build and install Paddle in virtual environment
-agentic-paddle-build-and-install VENV_PATH PADDLE_PATH:
+agentic-paddle-build-and-install PADDLE_PATH:
     #!/usr/bin/env bash
     set -euo pipefail
+    VENV_PATH="{{ PADDLE_PATH }}/.venv"
     echo "Building Paddle..."
-    cd {{ VENV_PATH }}
+    cd "$VENV_PATH"
     source bin/activate
     cd {{ PADDLE_PATH }}/build
     cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPY_VERSION=3.10 -DCUDA_ARCH_NAME=Auto -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja
     ninja -j$(nproc)
     echo "Installing Paddle..."
-    cd {{ VENV_PATH }}/..
+    cd "$VENV_PATH/.."
     uv pip install {{ PADDLE_PATH }}/build/python/dist/*.whl --no-deps --force-reinstall
     echo "Paddle build and install completed successfully."
 
 # Run Paddle internal unit test for a specific API
-agentic-run-paddle-unittest VENV_PATH PADDLE_PATH TEST_FILE:
+agentic-run-paddle-unittest PADDLE_PATH TEST_FILE:
     #!/usr/bin/env bash
     set -euo pipefail
+    VENV_PATH="{{ PADDLE_PATH }}/.venv"
     cd "{{ PADDLE_PATH }}"
 
     echo "Running Paddle unittest(FLAGS_use_accuracy_compatible_kernel=0) for {{ TEST_FILE }}..."
     FLAGS_use_accuracy_compatible_kernel=0 \
-    uv run --no-project -p "{{ VENV_PATH }}" python "{{ TEST_FILE }}"
+    uv run --no-project -p "$VENV_PATH" python "{{ TEST_FILE }}"
 
     echo "Running Paddle unittest(FLAGS_use_accuracy_compatible_kernel=1) for {{ TEST_FILE }}..."
     FLAGS_use_accuracy_compatible_kernel=1 \
-    uv run --no-project -p "{{ VENV_PATH }}" python "{{ TEST_FILE }}"
+    uv run --no-project -p "$VENV_PATH" python "{{ TEST_FILE }}"
 
 # Run PaddleTest functional test for a specific API
-agentic-run-paddletest VENV_PATH PADDLETEST_PATH TEST_FILE:
+agentic-run-paddletest PADDLE_PATH PADDLETEST_PATH TEST_FILE:
     #!/usr/bin/env bash
     set -euo pipefail
+    VENV_PATH="{{ PADDLE_PATH }}/.venv"
     cd "{{ PADDLETEST_PATH }}"
 
     echo "Running PaddleTest(FLAGS_use_accuracy_compatible_kernel=0) for {{ TEST_FILE }}..."
     FLAGS_use_accuracy_compatible_kernel=0 \
-    uv run --no-project -p "{{ VENV_PATH }}" python -m pytest "{{ TEST_FILE }}" -v
+    uv run --no-project -p "$VENV_PATH" python -m pytest "{{ TEST_FILE }}" -v
 
     echo "Running PaddleTest(FLAGS_use_accuracy_compatible_kernel=1) for {{ TEST_FILE }}..."
     FLAGS_use_accuracy_compatible_kernel=1 \
-    uv run --no-project -p "{{ VENV_PATH }}" python -m pytest "{{ TEST_FILE }}" -v
+    uv run --no-project -p "$VENV_PATH" python -m pytest "{{ TEST_FILE }}" -v
 
 # Extract precision test configs for an API from PaddleAPITest paa.txt into .paa/config/{API_NAME}.txt for Validator use.
 agentic-get-precision-test-configs API_NAME PADDLEAPITEST_PATH:
@@ -247,9 +254,10 @@ agentic-get-precision-test-configs API_NAME PADDLEAPITEST_PATH:
     echo "config file is saved to $(pwd)/.paa/config/{{API_NAME}}.txt"
 
 # Run PaddleAPITest precision validation (returns log directory path)
-agentic-run-precision-test VENV_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DIR:
+agentic-run-precision-test PADDLE_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DIR:
     #!/usr/bin/env bash
     set -euo pipefail
+    VENV_PATH="{{ PADDLE_PATH }}/.venv"
     cd "{{ PADDLEAPITEST_PATH }}"
     echo "Removing old log files..."
     rm -f PAA_test_log/{{ LOG_DIR }}/*.txt
@@ -257,7 +265,7 @@ agentic-run-precision-test VENV_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DIR:
     echo "Running PaddleAPITest(FLAGS_use_accuracy_compatible_kernel=1) with config: {{ CONFIG_FILE }}..."
 
     FLAGS_use_accuracy_compatible_kernel=1 \
-    uv run --no-project -p "{{ VENV_PATH }}" python engineV2.py \
+    uv run --no-project -p "$VENV_PATH" python engineV2.py \
         --atol=0 \
         --rtol=0 \
         --accuracy=True \
