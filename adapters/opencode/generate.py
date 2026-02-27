@@ -1,20 +1,6 @@
-#!/usr/bin/env python3
-"""
-OpenCode Adapter
-
-Reads canonical agent definitions from agents/*.md (YAML frontmatter + prompt)
-and generates the .opencode/ directory structure that opencode-ai expects.
-
-Usage:
-    python adapters/opencode/generate.py [--dry-run]
-
-Dependencies: PyYAML (pyyaml)
-"""
-
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
 
 import yaml
@@ -23,8 +9,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 AGENTS_DIR = ROOT / "agents"
-OPENCODE_DIR = ROOT / ".opencode"
-OPENCODE_AGENTS_DIR = OPENCODE_DIR / "agents"
+OPENCODE_AGENTS_DIR = ROOT / ".opencode" / "agents"
 
 # ── Model mapping ────────────────────────────────────────────────────────────
 
@@ -109,10 +94,8 @@ def load_agent_defs() -> list[dict]:
         if prompt_file:
             prompt_path = (AGENTS_DIR / prompt_file).resolve()
             defn["_prompt_content"] = prompt_path.read_text() if prompt_path.exists() else ""
-            defn["_prompt_rel_path"] = str(prompt_path.relative_to(ROOT))
         else:
             defn["_prompt_content"] = body
-            defn["_prompt_rel_path"] = ""
 
         defn["_source"] = md_path.name
         agents.append(defn)
@@ -159,18 +142,6 @@ def resolve_temperature(model_cfg: dict | None, default: float) -> float:
 # ── YAML serializer (clean output with double-quoted keys) ───────────────────
 
 
-def _yaml_line(key: str, value, indent: int = 0) -> str:
-    prefix = "  " * indent
-    if isinstance(value, bool):
-        return f'{prefix}"{key}": {str(value).lower()}'
-    elif isinstance(value, (int, float)):
-        return f'{prefix}"{key}": {value}'
-    elif isinstance(value, str):
-        return f'{prefix}"{key}": {value}'
-    else:
-        return f'{prefix}"{key}": {value}'
-
-
 def serialize_frontmatter(desc: str, mode: str, model: str, temp: float,
                           skills: list[str], tools: dict, permission: dict) -> str:
     """Serialize opencode agent frontmatter with consistent formatting."""
@@ -204,42 +175,6 @@ def serialize_frontmatter(desc: str, mode: str, model: str, temp: float,
     return "\n".join(lines)
 
 
-# ── opencode.json generator ─────────────────────────────────────────────────
-
-
-def generate_opencode_json(agents: list[dict]) -> dict:
-    config = {
-        "$schema": "https://opencode.ai/config.json",
-        "permission": {
-            "external_directory": {
-                "*": "deny",
-                "/workspace/*": "allow",
-            },
-        },
-        "agent": {},
-    }
-
-    for agent in agents:
-        if agent.get("role") != "primary":
-            continue
-
-        tools = agent["_tools"]
-        bash_allowed = agent["_bash_allowed"]
-        delegates = agent["_delegates"]
-
-        config["agent"][agent["name"]] = {
-            "mode": "primary",
-            "model": resolve_model(agent.get("model")),
-            "temperature": resolve_temperature(agent.get("model"), 0.2),
-            "prompt": "{file:./" + agent["_prompt_rel_path"] + "}",
-            "skills": agent.get("skills", []),
-            "tools": tools,
-            "permission": build_permissions(bash_allowed, delegates, tools),
-        }
-
-    return config
-
-
 # ── .opencode/agents/*.md generator ─────────────────────────────────────────
 
 
@@ -248,13 +183,15 @@ def generate_agent_md(agent: dict) -> str:
     bash_allowed = agent["_bash_allowed"]
     delegates = agent["_delegates"]
 
+    role = agent.get("role", "subagent")
     desc = agent["description"].strip()
     model = resolve_model(agent.get("model"))
-    temp = resolve_temperature(agent.get("model"), 0.1)
+    default_temp = 0.2 if role == "primary" else 0.1
+    temp = resolve_temperature(agent.get("model"), default_temp)
     skills = [s for s in agent.get("skills", []) if s]
     permission = build_permissions(bash_allowed, delegates, tools)
 
-    fm = serialize_frontmatter(desc, "subagent", model, temp, skills, tools, permission)
+    fm = serialize_frontmatter(desc, role, model, temp, skills, tools, permission)
     prompt = agent.get("_prompt_content", "")
     return f"{fm}\n\n{prompt}"
 
@@ -263,7 +200,7 @@ def generate_agent_md(agent: dict) -> str:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate .opencode/ from agents/")
+    parser = argparse.ArgumentParser(description="Generate .opencode/agents/ from agents/")
     parser.add_argument("--dry-run", action="store_true", help="Preview without writing files")
     args = parser.parse_args()
 
@@ -273,21 +210,10 @@ def main():
     subagents = [a for a in agents if a.get("role") == "subagent"]
     print(f"  Found {len(agents)} agents ({len(primaries)} primary, {len(subagents)} subagent)")
 
-    # 1. Generate opencode.json
-    config = generate_opencode_json(agents)
-    config_json = json.dumps(config, indent=2, ensure_ascii=False) + "\n"
-
-    if args.dry_run:
-        print("\n── opencode.json ──")
-        print(config_json)
-    else:
-        (ROOT / "opencode.json").write_text(config_json)
-        print("  Written: opencode.json")
-
-    # 2. Generate .opencode/agents/*.md
+    # Generate .opencode/agents/*.md for all agents
     OPENCODE_AGENTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    for agent in subagents:
+    for agent in agents:
         content = generate_agent_md(agent)
         out_path = OPENCODE_AGENTS_DIR / f"{agent['name']}.md"
 

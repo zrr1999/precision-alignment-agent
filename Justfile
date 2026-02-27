@@ -47,6 +47,8 @@ analysis-start api_name additional_prompt:
     #!/usr/bin/env bash
     set -euo pipefail
 
+    just adapt
+
     # 更新 skills
     bunx skills update
 
@@ -108,6 +110,8 @@ analysis-start api_name additional_prompt:
 alignment-start api_name additional_prompt:
     #!/usr/bin/env bash
     set -euo pipefail
+
+    just adapt
 
     # 更新 skills
     bunx skills update
