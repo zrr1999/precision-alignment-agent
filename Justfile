@@ -19,6 +19,7 @@ setup:
     bunx skills add anthropics/skills -g -y --skill skill-creator
     bunx skills add yamadashy/repomix -g -y --skill repomix-explorer
     bunx skills add ast-grep/agent-skill -g -y --skill "*"
+    bunx skills add OthmanAdi/planning-with-files -g -y --skill ""planning-with-files""
 
     # 提示安装全局 mcp
     echo "For better performance, please manually install global mcp: https://mcp.context7.com/install"
@@ -31,14 +32,73 @@ setup-repos username:
     git clone https://github.com/{{ username }}/PaddleAPITest.git .paa/repos/PaddleAPITest
     git clone https://github.com/{{ username }}/pytorch.git .paa/repos/pytorch
 
-# 快速启动精度对齐流程
-quick-start api_name additional_info:
+repos-explore api_name additional_prompt:
     #!/usr/bin/env bash
     set -euo pipefail
-    # TODO: 移除 additional_info 使用更明确的内容
 
     # 更新 skills
-    bunx skills update -g --skill "*"
+    bunx skills update
+
+    PAA_ROOT=$(pwd)
+
+    # 为环境变量设置默认占位符
+    PADDLE_PATH="${PADDLE_PATH:=.paa/repos/Paddle}"
+    PYTORCH_PATH="${PYTORCH_PATH:=.paa/repos/pytorch}"
+    PADDLETEST_PATH="${PADDLETEST_PATH:=.paa/repos/PaddleTest}"
+    PADDLEAPITEST_PATH="${PADDLEAPITEST_PATH:=.paa/repos/PaddleAPITest}"
+
+    # 规范化为绝对路径
+    PADDLE_PATH="$(cd "$PADDLE_PATH" && pwd)"
+    PYTORCH_PATH="$(cd "$PYTORCH_PATH" && pwd)"
+    PADDLETEST_PATH="$(cd "$PADDLETEST_PATH" && pwd)"
+    PADDLEAPITEST_PATH="$(cd "$PADDLEAPITEST_PATH" && pwd)"
+
+    echo "PYTORCH_PATH: $PYTORCH_PATH"
+    echo "PADDLETEST_PATH: $PADDLETEST_PATH"
+    echo "PADDLEAPITEST_PATH: $PADDLEAPITEST_PATH"
+
+    echo "Setting up worktree"
+    mkdir -p .paa/worktree
+    cd $PADDLE_PATH
+    git switch -c PAA/develop 2>/dev/null || git switch PAA/develop
+    git pull upstream develop
+    if [ -d "$PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}" ]; then
+        cd "$PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}"
+    else
+        git worktree add $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }} -b precision-alignment-agent/{{ api_name }}
+    fi
+
+    PADDLE_PATH=$PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}
+    VENV_PATH=$PADDLE_PATH/.venv
+    echo "PADDLE_PATH: $PADDLE_PATH"
+
+    cd $PAA_ROOT
+
+    echo "Starting explore {{ api_name }} \
+        (additional prompt: {{ additional_prompt }}), with inputs: \
+        paddle_path=$PADDLE_PATH, \
+        pytorch_path=$PYTORCH_PATH, \
+        paddletest_path=$PADDLETEST_PATH, \
+        paddleapitest_path=$PADDLEAPITEST_PATH, \
+        venv_path=$VENV_PATH"
+
+    opencode \
+      --agent build \
+      --prompt "Start explore {{ api_name }} \
+        (additional prompt: {{ additional_prompt }}), with inputs: \
+        paddle_path=$PADDLE_PATH, \
+        pytorch_path=$PYTORCH_PATH, \
+        paddletest_path=$PADDLETEST_PATH, \
+        paddleapitest_path=$PADDLEAPITEST_PATH, \
+        venv_path=$VENV_PATH"
+
+# 快速启动精度对齐流程
+quick-start api_name additional_prompt:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # 更新 skills
+    bunx skills update
 
     PAA_ROOT=$(pwd)
 
@@ -87,7 +147,7 @@ quick-start api_name additional_info:
     cd $PAA_ROOT
 
     echo "Starting precision alignment workflow for {{ api_name }} \
-        (additional info: {{ additional_info }}), with inputs: \
+        (additional prompt: {{ additional_prompt }}), with inputs: \
         paddle_path=$PADDLE_PATH, \
         pytorch_path=$PYTORCH_PATH, \
         paddletest_path=$PADDLETEST_PATH, \
@@ -97,7 +157,7 @@ quick-start api_name additional_info:
     opencode \
       --agent precision-alignment \
       --prompt "Start precision alignment workflow for {{ api_name }} \
-        (session_id: $(date +'%Y%m%d-%H%M%S') , additional info: {{ additional_info }}), with inputs: \
+        (additional prompt: {{ additional_prompt }}), with inputs: \
         paddle_path=$PADDLE_PATH, \
         pytorch_path=$PYTORCH_PATH, \
         paddletest_path=$PADDLETEST_PATH, \

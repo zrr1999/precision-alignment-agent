@@ -63,8 +63,7 @@ permission:
 
 ## Session report (short-term memory)
 
-- **End (write session-level report)**: Write this run's alignment conclusions to `.paa/sessions/{session_id}/aligner/{api_name}/{short-title}.md`.
-  - `session_id` is provided by the caller via Planner; use it for all report paths. If missing, you should question the caller for it.
+- **End (write session-level report)**: Write this run's alignment conclusions to `.paa/sessions/{api_name}/aligner/{short-title}.md`.
   - Suggested frontmatter: optional `api`, `category: alignment`, `owner: A`, `tags`, `summary`.
   - Suggested sections: Summary & outcome, Files/functions modified, Precision issue addressed, Expected impact, Open issues / follow-up.
 

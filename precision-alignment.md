@@ -27,11 +27,9 @@ Collect **before** first sub-agent call: `api_name`, `paddle_path`, `pytorch_pat
 
 ## Session (you own it)
 
-- **You** generate a single `session_id` at the **start** of the workflow (e.g. `YYYYMMDD-HHmmss`). This ID identifies one precision-alignment run.
-- **You** pass `session_id` in **every** sub-agent invocation (validator, planner, reviewer). Planner will pass the same `session_id` to explorer, aligner, and diagnostician.
-- Sub-agents write their reports under `.paa/sessions/{session_id}/...` and **must not** generate their own; they use the one you provide so all reports for this run stay under the same session.
+- Sub-agents write their reports under `.paa/sessions/{api_name}/...` and **must not** generate their own; they use the one you provide so all reports for this run stay under the same session.
 
-**When invoking any sub-agent**, always pass: `session_id`, `api_name`, `venv_path`; and where applicable `paddle_path`, `pytorch_path`, `paddletest_path`, `paddleapitest_path`, `test_config_file`. **Validator must receive `paddleapitest_path` and `test_config_file`** (precision run); do **not** pass `paddletest_path` to Validator for precision—that is the wrong repo. Diagnostician and Reviewer receive `paddletest_path` for functional tests. If the task has "shared kernels" or related APIs, pass that context explicitly in the task description.
+**When invoking any sub-agent**, always pass: `api_name`, `venv_path`; and where applicable `paddle_path`, `pytorch_path`, `paddletest_path`, `paddleapitest_path`, `test_config_file`. **Validator must receive `paddleapitest_path` and `test_config_file`** (precision run); do **not** pass `paddletest_path` to Validator for precision—that is the wrong repo. Diagnostician and Reviewer receive `paddletest_path` for functional tests. If the task has "shared kernels" or related APIs, pass that context explicitly in the task description.
 
 ## Agentic Workflow
 
@@ -62,4 +60,4 @@ Collect **before** first sub-agent call: `api_name`, `paddle_path`, `pytorch_pat
 - **Track your step explicitly** - Always know if you're on 1.1, 1.2, 1.3, or 2
 - **NEVER abort mid-workflow** - If stuck, ask user; never stop silently
 - **When APIs share kernels** - Pass that context to `@planner`
-- **Success** = `@reviewer` reports PR ready; **failure** = `@reviewer` reports failure and writes a failure report under `.paa/sessions/{session_id}/reviewer/{api_name}/...`
+- **Success** = `@reviewer` reports PR ready; **failure** = `@reviewer` reports failure and writes a failure report under `.paa/sessions/{api_name}/reviewer/...`

@@ -67,8 +67,7 @@ Interpret: OK / FAILED (N) / ERROR (env/setup).
 
 - **Start (read long-term memory)**: Prefer reading **diagnosis-pattern** long-term memories from `knowledge/commons/` and `.paa/memory/` (for example, common GPU compile-error patterns, typical CMake/CUDA misconfigurations) instead of per-API histories. Produce **2–4 reusable failure patterns and mitigation strategies**. If nothing relevant exists, say “No relevant long-term diagnosis memory” and do not invent content.
 - **During (record this fault)**: During the task, accumulate: fault type (compile/runtime), repro steps, key log excerpts, and whether you fixed it directly or escalated to Aligner (with reasons).
-- **End (write session-level report)**: Write this information to `.paa/sessions/{session_id}/diagnostician/{api_name}/{fault-category}.md`:
-  - `session_id` is provided by the caller; use it for all report paths. If missing, you should question the caller for it.
+- **End (write session-level report)**: Write this information to `.paa/sessions/{api_name}/diagnostician/{fault-category}.md`:
   - Recommended frontmatter fields: optional `api`, `category: basic-diagnosis`, `owner: D`, `tags` (e.g. compile/runtime/gpu/cpu/simple/complex/resolved/escalated), `summary`;
   - Recommended sections: Fault Summary, Reproduction, Error Message, Root Cause, Fix Applied / Escalation Reason, Related.
   - If you identify a **cross-API reusable** diagnosis pattern (for example, a recurring CMake misconfiguration symptom), suggest using the `paa-knowledge-curation` skill at task end to abstract it into a long-term topic file under `.paa/memory/{topic}.md`, where `{topic}` names the pattern only (no API names).

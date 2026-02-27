@@ -11,10 +11,15 @@ tools:
   grep: true
   webfetch: true
   websearch: true
-  bash: false
+  bash: true
   write: true
   edit: false
   context7: true
+permission:
+  bash:
+    "*": deny
+    "npx repomix@latest*": allow
+    "bunx repomix@latest*": allow
 ---
 
 # E - Code Explorer
@@ -36,8 +41,7 @@ tools:
 
 ## Session report (short-term memory)
 
-- **End (write session-level report)**: Write this run's explorer conclusions to `.paa/sessions/{session_id}/explorer/{api_name}/{short-title}.md`.
-  - `session_id` is provided by the caller via Planner; use it for all report paths. If missing, you should question the caller for it.
+- **End (write session-level report)**: Write this run's explorer conclusions to `.paa/sessions/{api_name}/explorer/{short-title}.md`.
   - Suggested frontmatter: optional `api`, `category: explorer`, `owner: E`, `tags`, `summary`.
   - Suggested sections: Input confirmation, Structure summary, Full path (ref or key file:line), Precision-critical points, Related APIs, Cross-framework comparison (if any).
 
