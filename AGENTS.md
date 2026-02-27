@@ -27,13 +27,27 @@ When you are performing **precision alignment work**, you **must** follow these 
 
 ## 2. Developing the precision-alignment-agent project itself
 
-When you are **developing, refactoring, or extending this project** (for example, editing agents in `.opencode/agents`, skills, tools like `paddle_apitest.ts`, or project configuration), the goal is to improve this repository as a tool.
+When you are **developing, refactoring, or extending this project** (for example, editing agents in `.opencode/agents`, skills, tools, or project configuration), the goal is to improve this repository as a tool.
 
 In this mode:
 
 1. **You are not required to follow the workflow described in `precision-alignment.md`.**
+2. You **may** read and modify `docs/` and other project files as needed.
 
-   - That document describes how to use this project as a precision alignment tool, not how to develop the tool itself.
-   - You may change, reorganize, or extend the implementation even if it temporarily diverges from the processes described in `precision-alignment.md`.
+---
 
-2. You **may** read and modify `docs/` (and other project files) as needed to support the evolution of this project, as long as you are not simultaneously running an actual precision alignment task as described in section 1.
+## Architecture Overview
+
+The system uses a **flat orchestration** model: a single Main Agent (defined in `precision-alignment.md` + `opencode.json`) directly coordinates all sub-agents.
+
+```
+Main Agent (Orchestrator, claude-opus-4.6)
+  ├── @explorer      Code tracing (read-only)
+  ├── @learner       PR prior art (read-only)
+  ├── @aligner       Code changes (write)
+  ├── @diagnostician Build + smoke test + commit (bash)
+  ├── @validator     Precision test (bash)
+  └── @reviewer      Final review + PR (bash+git)
+```
+
+There is no intermediate planning layer. The Main Agent reads knowledge, plans the fix strategy, drives both the AD loop (Aligner → Diagnostician) and the PV loop (fix → Validator), and makes all strategic decisions with full session context.

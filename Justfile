@@ -32,7 +32,7 @@ setup-repos username:
     git clone https://github.com/{{ username }}/PaddleAPITest.git .paa/repos/PaddleAPITest
     git clone https://github.com/{{ username }}/pytorch.git .paa/repos/pytorch
 
-repos-explore api_name additional_prompt:
+analysis-start api_name additional_prompt:
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -74,7 +74,7 @@ repos-explore api_name additional_prompt:
 
     cd $PAA_ROOT
 
-    echo "Starting explore {{ api_name }} \
+    echo "Starting EXPLORE-ONLY (read-only) session for {{ api_name }} \
         (additional prompt: {{ additional_prompt }}), with inputs: \
         paddle_path=$PADDLE_PATH, \
         pytorch_path=$PYTORCH_PATH, \
@@ -83,17 +83,18 @@ repos-explore api_name additional_prompt:
         venv_path=$VENV_PATH"
 
     opencode \
-      --agent build \
-      --prompt "Start explore {{ api_name }} \
-        (additional prompt: {{ additional_prompt }}), with inputs: \
-        paddle_path=$PADDLE_PATH, \
+      --agent precision-analysis \
+      --prompt "Start EXPLORE-ONLY (read-only) precision analysis for {{ api_name }}. \
+        This session is for research and code tracing only. \
+        Additional user prompt: {{ additional_prompt }}. \
+        Inputs: paddle_path=$PADDLE_PATH, \
         pytorch_path=$PYTORCH_PATH, \
         paddletest_path=$PADDLETEST_PATH, \
         paddleapitest_path=$PADDLEAPITEST_PATH, \
         venv_path=$VENV_PATH"
 
 # 快速启动精度对齐流程
-quick-start api_name additional_prompt:
+alignment-start api_name additional_prompt:
     #!/usr/bin/env bash
     set -euo pipefail
 
