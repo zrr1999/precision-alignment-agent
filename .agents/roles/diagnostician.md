@@ -14,28 +14,16 @@ skills:
   - paa-knowledge-curation
 
 capabilities:
-  - read-code
-  - write-code
+  - read
+  - write
+  - readonly-bash
   - bash:
       - "nproc"
-      - "ls*"
-      - "pwd"
-      - "grep*"
-      - "cat*"
-      - "head*"
-      - "tail*"
-      - "wc*"
-      - "which*"
-      - "echo*"
       - "uv*"
       - "just"
       - "just agentic*"
-      - "git status*"
-      - "git diff*"
       - "git add*"
       - "git commit*"
-      - "git rev-parse*"
-      - "git log*"
 ---
 
 # D - Diagnostician

@@ -6,7 +6,7 @@ description: >
 role: primary
 
 model:
-  tier: reasoning
+  tier: coding
   temperature: 0.2
 
 skills:
@@ -14,24 +14,10 @@ skills:
   - paa-knowledge-curation
 
 capabilities:
-  - read-code
+  - read
   - write-report
   - web-read
-  - bash:
-      - "ls*"
-      - "cat*"
-      - "head*"
-      - "tail*"
-      - "grep*"
-      - "wc*"
-      - "pwd"
-      - "date*"
-      - "echo*"
-      - "git status*"
-      - "git log*"
-      - "git diff*"
-      - "git rev-parse*"
-      - "git branch*"
+  - readonly-bash
   - delegate:
       - explorer
       - learner

@@ -15,19 +15,11 @@ skills:
   - paa-knowledge-curation
 
 capabilities:
-  - read-code
-  - write-code
+  - read
+  - write
   - web-read
+  - readonly-bash
   - bash:
-      - "ls*"
-      - "pwd"
-      - "grep*"
-      - "cat*"
-      - "head*"
-      - "tail*"
-      - "wc*"
-      - "which*"
-      - "echo*"
       - "uv*"
       - "git*"
       - "gh*"

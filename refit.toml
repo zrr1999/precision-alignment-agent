@@ -1,0 +1,18 @@
+[project]
+agents_dir = ".agents/roles"
+
+[targets.opencode]
+enabled = true
+output_dir = "."
+
+[targets.opencode.model_map]
+reasoning = "github-copilot/claude-opus-4.6"
+coding = "github-copilot/gpt-5.2-codex"
+
+[targets.claude]
+enabled = true
+output_dir = "."
+
+[targets.claude.model_map]
+reasoning = "claude-opus-4.6"
+coding = "claude-sonnet-4"

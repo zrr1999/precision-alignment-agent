@@ -25,15 +25,7 @@ setup:
     echo "For better performance, please manually install global mcp: https://mcp.context7.com/install"
 
 # 从 agents/ 适配生成各平台配置
-adapt: adapt-opencode
-
-# 适配生成 opencode 配置
-adapt-opencode:
-    python3 adapters/opencode/generate.py
-
-# 预览适配结果（不写入文件）
-adapt-dry-run:
-    python3 adapters/opencode/generate.py --dry-run
+adapt: uvx agent-caster cast
 
 # 初始化仓库
 setup-repos username:

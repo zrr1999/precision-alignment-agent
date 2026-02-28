@@ -14,24 +14,14 @@ skills:
   - paa-knowledge-curation
 
 capabilities:
-  - read-code
+  - read
   - write-report
+  - readonly-bash
   - bash:
-      - "ls*"
-      - "pwd"
-      - "grep*"
-      - "cat*"
-      - "head*"
-      - "tail*"
-      - "wc*"
-      - "which*"
-      - "echo*"
       - "uv*"
       - "just"
       - "just agentic*"
       - "*=* just*"
-      - "git rev-parse*"
-      - "git branch*"
 ---
 
 # V - Precision Validator

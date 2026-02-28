@@ -13,11 +13,11 @@ skills:
   - paa-knowledge-curation
 
 capabilities:
-  - read-code
+  - read
   - write-report
   - web-access
   - context7
-  - gh-search
+  - gh_grep
 ---
 
 # L - PR Learner
