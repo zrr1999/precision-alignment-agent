@@ -1,6 +1,28 @@
 # 精度对齐智能体（Precision Alignment Agent）
 
-自动对齐 Paddle 与 PyTorch API 的数值精度，通过「分析问题 → 生成修复方案 → 构造/运行测试 → 验证精度 → 生成 PR」的闭环流程，辅助完成精度对齐工作。
+自动对齐 Paddle 与 PyTorch API 的数值精度，通过「分析问题 → 生成修复方案 → 构建/运行测试 → 验证精度 → 生成 PR」的闭环流程，辅助完成精度对齐工作。
+
+## 架构概览
+
+系统采用**扁平编排**模型：一个主 Agent（Orchestrator）直接协调六个专用子 Agent。
+
+```
+Main Agent (Orchestrator)
+  ├── @explorer        代码追踪（只读）
+  ├── @learner         PR 先例研究（只读）
+  ├── @aligner         精度代码修改（写入）
+  ├── @diagnostician   构建 + 冒烟测试 + 提交
+  ├── @validator       精度验证测试
+  └── @reviewer        最终审查 + 创建 PR
+```
+
+工作流分为 5 个阶段：
+
+1. **探索与学习**（并行）：Explorer 追踪 Paddle/PyTorch 实现路径，Learner 搜索历史 PR
+2. **规划**：Orchestrator 基于报告制定修复计划
+3. **修复循环**（AD 循环，最多 5 次迭代）：Aligner → Diagnostician → 评估
+4. **精度验证**（PV 循环）：Validator 运行 PaddleAPITest
+5. **最终审查**：Reviewer 验证并创建 PR
 
 ## 准备工作
 
@@ -23,8 +45,8 @@ just setup
 该命令会安装：
 
 - `uv`、`bun`、`x-cmd` 等基础环境；
-- `opencode-ai`、`ocx` 等 AI Coding Agent 相关工具；
-- 默认的系统级 skills。
+- `opencode-ai`、`ocx`、`repomix` 等 AI Coding Agent 相关工具；
+- 默认的系统级 skills（paddle-skills、ast-grep 等）。
 
 ### 2. 克隆相关代码仓库
 
@@ -41,18 +63,49 @@ just setup-repos <your_github_username>
 - `PaddleAPITest`
 - `pytorch`
 
-你也可以手动管理这些仓库，只需在之后的步骤中通过环境变量传入路径即可。
+你也可以手动管理这些仓库，只需在启动时通过环境变量传入路径即可。
 
-## 启动精度对齐任务
+## 启动任务
+
+### 精度分析（只读）
+
+仅做代码追踪和分析，不修改任何代码：
 
 ```bash
-just quick-start <api_name> "<additional_info>"
+just analysis-start <api_name> "<additional_info>"
 ```
 
-- **`api_name`**：要对齐的 Paddle API，如 `paddle.nn.functional.softmax`
-- **`additional_info`**：可选，如问题复现场景、模型或脚本路径
+### 精度对齐（完整流程）
 
-会为当前 API 创建 worktree、编译安装 Paddle、启动精度对齐 Agent 进入交互会话。路径可通过 `PADDLE_PATH`、`PYTORCH_PATH`、`PADDLETEST_PATH`、`PADDLEAPITEST_PATH` 环境变量覆盖。
+创建 worktree、编译安装 Paddle、启动完整的精度对齐 Agent：
+
+```bash
+just alignment-start <api_name>
+```
+
+两个命令均支持通过 `tool` 参数选择底层 AI Coding Agent（默认 `opencode`，也支持 `claude` 和 `ducc`）：
+
+```bash
+just alignment-start <api_name> claude
+```
+
+路径可通过 `PADDLE_PATH`、`PYTORCH_PATH`、`PADDLETEST_PATH`、`PADDLEAPITEST_PATH` 环境变量覆盖。
+
+## 开发说明
+
+关键目录：
+
+- `.agents/roles/` — 规范 Agent 定义（YAML frontmatter + Markdown prompt），唯一真实来源
+- `.agents/skills/` — 平台无关的 skills
+- `knowledge/` — 人工维护的知识库（Agent 只读）
+- `.opencode/`、`.claude/` — 由 [agent-caster](https://github.com/gouzil/agent-caster) 生成的平台配置，勿手动编辑
+- `.paa/` — 运行时数据（repos、worktree、sessions、config、memory）
+
+### 编辑 Agent
+
+1. 编辑 `.agents/roles/{name}.md` 中的规范定义（YAML frontmatter = 元数据，正文 = prompt）
+2. 运行 `just adapt` 重新生成各平台配置
+3. **不要直接编辑** `.opencode/` 或 `.claude/` 下的生成文件
 
 ## 许可证
 
