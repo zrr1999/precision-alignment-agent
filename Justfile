@@ -25,7 +25,8 @@ setup:
     echo "For better performance, please manually install global mcp: https://mcp.context7.com/install"
 
 # 从 agents/ 适配生成各平台配置
-adapt: uvx agent-caster cast
+adapt:
+    uvx agent-caster cast
 
 # 初始化仓库
 setup-repos username:
@@ -35,24 +36,20 @@ setup-repos username:
     git clone https://github.com/{{ username }}/PaddleAPITest.git .paa/repos/PaddleAPITest
     git clone https://github.com/{{ username }}/pytorch.git .paa/repos/pytorch
 
-analysis-start api_name additional_prompt:
+analysis-start api_name additional_prompt tool="opencode":
     #!/usr/bin/env bash
     set -euo pipefail
 
     just adapt
-
-    # 更新 skills
     bunx skills update
 
     PAA_ROOT=$(pwd)
 
-    # 为环境变量设置默认占位符
     PADDLE_PATH="${PADDLE_PATH:=.paa/repos/Paddle}"
     PYTORCH_PATH="${PYTORCH_PATH:=.paa/repos/pytorch}"
     PADDLETEST_PATH="${PADDLETEST_PATH:=.paa/repos/PaddleTest}"
     PADDLEAPITEST_PATH="${PADDLEAPITEST_PATH:=.paa/repos/PaddleAPITest}"
 
-    # 规范化为绝对路径
     PADDLE_PATH="$(cd "$PADDLE_PATH" && pwd)"
     PYTORCH_PATH="$(cd "$PYTORCH_PATH" && pwd)"
     PADDLETEST_PATH="$(cd "$PADDLETEST_PATH" && pwd)"
@@ -79,17 +76,8 @@ analysis-start api_name additional_prompt:
 
     cd $PAA_ROOT
 
-    echo "Starting EXPLORE-ONLY (read-only) session for {{ api_name }} \
-        (additional prompt: {{ additional_prompt }}), with inputs: \
-        paddle_path=$PADDLE_PATH, \
-        pytorch_path=$PYTORCH_PATH, \
-        paddletest_path=$PADDLETEST_PATH, \
-        paddleapitest_path=$PADDLEAPITEST_PATH, \
-        venv_path=$VENV_PATH"
-
-    opencode \
-      --agent precision-analysis \
-      --prompt "Start EXPLORE-ONLY (read-only) precision analysis for {{ api_name }}. \
+    AGENT="precision-analysis"
+    PROMPT="Start EXPLORE-ONLY (read-only) precision analysis for {{ api_name }}. \
         This session is for research and code tracing only. \
         Additional user prompt: {{ additional_prompt }}. \
         Inputs: paddle_path=$PADDLE_PATH, \
@@ -98,25 +86,23 @@ analysis-start api_name additional_prompt:
         paddleapitest_path=$PADDLEAPITEST_PATH, \
         venv_path=$VENV_PATH"
 
+    just _launch-agent "{{ tool }}" "$AGENT" "$PROMPT"
+
 # 快速启动精度对齐流程
-alignment-start api_name additional_prompt:
+alignment-start api_name tool="opencode" additional_prompt="":
     #!/usr/bin/env bash
     set -euo pipefail
 
     just adapt
-
-    # 更新 skills
     bunx skills update
 
     PAA_ROOT=$(pwd)
 
-    # 为环境变量设置默认占位符
     PADDLE_PATH="${PADDLE_PATH:=.paa/repos/Paddle}"
     PYTORCH_PATH="${PYTORCH_PATH:=.paa/repos/pytorch}"
     PADDLETEST_PATH="${PADDLETEST_PATH:=.paa/repos/PaddleTest}"
     PADDLEAPITEST_PATH="${PADDLEAPITEST_PATH:=.paa/repos/PaddleAPITest}"
 
-    # 规范化为绝对路径
     PADDLE_PATH="$(cd "$PADDLE_PATH" && pwd)"
     PYTORCH_PATH="$(cd "$PYTORCH_PATH" && pwd)"
     PADDLETEST_PATH="$(cd "$PADDLETEST_PATH" && pwd)"
@@ -154,7 +140,8 @@ alignment-start api_name additional_prompt:
 
     cd $PAA_ROOT
 
-    echo "Starting precision alignment workflow for {{ api_name }} \
+    AGENT="precision-alignment"
+    PROMPT="Start precision alignment workflow for {{ api_name }} \
         (additional prompt: {{ additional_prompt }}), with inputs: \
         paddle_path=$PADDLE_PATH, \
         pytorch_path=$PYTORCH_PATH, \
@@ -162,15 +149,29 @@ alignment-start api_name additional_prompt:
         paddleapitest_path=$PADDLEAPITEST_PATH, \
         venv_path=$VENV_PATH"
 
-    opencode \
-      --agent precision-alignment \
-      --prompt "Start precision alignment workflow for {{ api_name }} \
-        (additional prompt: {{ additional_prompt }}), with inputs: \
-        paddle_path=$PADDLE_PATH, \
-        pytorch_path=$PYTORCH_PATH, \
-        paddletest_path=$PADDLETEST_PATH, \
-        paddleapitest_path=$PADDLEAPITEST_PATH, \
-        venv_path=$VENV_PATH"
+    just _launch-agent "{{ tool }}" "$AGENT" "$PROMPT"
+
+# ============================================================================
+# Internal Recipes (prefixed with _)
+# ============================================================================
+
+# 根据 tool 类型启动 agent（支持 opencode / claude / ducc）
+_launch-agent tool agent prompt:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "Launching agent '{{ agent }}' with tool '{{ tool }}'..."
+    case "{{ tool }}" in
+        opencode)
+            opencode --agent "{{ agent }}" --prompt "{{ prompt }}"
+            ;;
+        claude|ducc)
+            {{ tool }} --agent "{{ agent }}" "{{ prompt }}"
+            ;;
+        *)
+            echo "Error: unsupported tool '{{ tool }}'. Use 'opencode', 'claude', or 'ducc'."
+            exit 1
+            ;;
+    esac
 
 # ============================================================================
 # Agentic Commands - For Agent Use Only
