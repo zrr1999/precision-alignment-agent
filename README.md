@@ -16,13 +16,12 @@ Main Agent (Orchestrator)
   └── @reviewer        最终审查 + 创建 PR
 ```
 
-工作流分为 5 个阶段：
+工作流分为 4 个阶段：
 
 1. **探索与学习**（并行）：Explorer 追踪 Paddle/PyTorch 实现路径，Learner 搜索历史 PR
 2. **规划**：Orchestrator 基于报告制定修复计划
-3. **修复循环**（AD 循环，最多 5 次迭代）：Aligner → Diagnostician → 评估
-4. **精度验证**（PV 循环）：Validator 运行 PaddleAPITest
-5. **最终审查**：Reviewer 验证并创建 PR
+3. **修复与验证循环**（最多 5 次迭代）：Aligner → Diagnostician → Validator → 评估
+4. **最终审查**：Reviewer 验证并创建 PR
 
 ## 准备工作
 

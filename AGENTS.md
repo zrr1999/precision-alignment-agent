@@ -50,7 +50,7 @@ Main Agent (Orchestrator)
 
 There is also a `precision-analysis` orchestrator (`.agents/roles/precision-analysis.md`) which delegates only to `@explorer` and `@learner` for read-only analysis.
 
-There is no intermediate planning layer. The Main Agent reads knowledge, plans the fix strategy, drives both the AD loop (Aligner → Diagnostician) and the PV loop (fix → Validator), and makes all strategic decisions with full session context.
+There is no intermediate planning layer. The Main Agent reads knowledge, plans the fix strategy, orchestrates the fix-validate loop (Aligner → Diagnostician → Validator), and makes all strategic decisions with full session context.
 
 ---
 

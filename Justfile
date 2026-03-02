@@ -28,6 +28,11 @@ setup:
 adapt:
     uvx agent-caster cast
 
+# 更新配置和 skills（adapt + skills update）
+update:
+    just adapt
+    bunx skills update
+
 # 初始化仓库
 setup-repos username:
     mkdir -p .paa/repos
@@ -39,9 +44,6 @@ setup-repos username:
 analysis-start api_name additional_prompt tool="opencode":
     #!/usr/bin/env bash
     set -euo pipefail
-
-    just adapt
-    bunx skills update
 
     PAA_ROOT=$(pwd)
 
@@ -92,9 +94,6 @@ analysis-start api_name additional_prompt tool="opencode":
 alignment-start api_name tool="opencode" additional_prompt="":
     #!/usr/bin/env bash
     set -euo pipefail
-
-    just adapt
-    bunx skills update
 
     PAA_ROOT=$(pwd)
 
