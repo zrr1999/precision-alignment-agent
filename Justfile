@@ -15,11 +15,11 @@ setup:
     bun install -g repomix
 
     # 安装系统 skills
-    bunx skills add PFCCLab/paddle-skills -g -y --skill "*"
-    bunx skills add anthropics/skills -g -y --skill skill-creator
-    bunx skills add yamadashy/repomix -g -y --skill repomix-explorer
-    bunx skills add ast-grep/agent-skill -g -y --skill "*"
-    bunx skills add OthmanAdi/planning-with-files -g -y --skill ""planning-with-files""
+    bunx skills add PFCCLab/paddle-skills -g -y --skill "*" -a claude-code
+    bunx skills add anthropics/skills -g -y --skill skill-creator -a claude-code
+    bunx skills add yamadashy/repomix -g -y --skill repomix-explorer -a claude-code
+    bunx skills add ast-grep/agent-skill -g -y --skill "*" -a claude-code
+    bunx skills add OthmanAdi/planning-with-files -g -y --skill ""planning-with-files"" -a claude-code
 
     # 提示安装全局 mcp
     echo "For better performance, please manually install global mcp: https://mcp.context7.com/install"
