@@ -30,8 +30,15 @@ adapt:
 
 # 更新配置和 skills（adapt + skills update）
 update:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    PADDLEAPITEST_PATH="${PADDLEAPITEST_PATH:=.paa/repos/PaddleAPITest}"
+
     just adapt
     bunx skills update
+
+    cd $PADDLEAPITEST_PATH
+    bash auto_get_api_config.sh paa
 
 # 初始化仓库
 setup-repos username:
@@ -125,9 +132,6 @@ alignment-start api_name tool="opencode" additional_prompt="":
     PADDLE_PATH=$PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}
     VENV_PATH=$PADDLE_PATH/.venv
     echo "PADDLE_PATH: $PADDLE_PATH"
-
-    cd $PADDLEAPITEST_PATH
-    bash auto_get_api_config.sh paa
 
     cd $PADDLE_PATH
     just agentic-venv-setup $PADDLE_PATH
