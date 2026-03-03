@@ -283,3 +283,28 @@ agentic-run-precision-test PADDLE_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DIR:
     echo "---"
     echo "Log directory: PAA_test_log/{{ LOG_DIR }}"
     echo "Full path: {{ PADDLEAPITEST_PATH }}/PAA_test_log/{{ LOG_DIR }}"
+
+# Run PaddleAPITest precision cpu validation (returns log directory path)
+agentic-run-precision-cpu-test PADDLE_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DIR:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    VENV_PATH="{{ PADDLE_PATH }}/.venv"
+    cd "{{ PADDLEAPITEST_PATH }}"
+    echo "Removing old log files..."
+    rm -f PAA_test_log/{{ LOG_DIR }}/*.txt
+    rm -f PAA_test_log/{{ LOG_DIR }}/*.log
+    echo "Running PaddleAPITest(FLAGS_use_accuracy_compatible_kernel=1) with config: {{ CONFIG_FILE }}..."
+
+    FLAGS_use_accuracy_compatible_kernel=1 \
+    uv run --no-project -p "$VENV_PATH" python engineV2.py \
+        --test_cpu=1 \
+        --atol=0 \
+        --rtol=0 \
+        --accuracy=True \
+        --api_config_file="{{ CONFIG_FILE }}" \
+        --log_dir="PAA_test_log/{{ LOG_DIR }}"
+
+    # Find and output the latest log directory
+    echo "---"
+    echo "Log directory: PAA_test_log/{{ LOG_DIR }}"
+    echo "Full path: {{ PADDLEAPITEST_PATH }}/PAA_test_log/{{ LOG_DIR }}"
