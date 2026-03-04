@@ -4,25 +4,78 @@ default:
 
 # 安装所有依赖
 setup:
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    curl -fsSL https://bun.sh/install | bash
-    eval "$(wget -O- https://get.x-cmd.com)"
-    x env use gh
+    #!/usr/bin/env bash
+    set -euo pipefail
 
-    # 安装 AI coding agent
-    bun install -g opencode-ai
-    bun install -g ocx
-    bun install -g repomix
+    has() { command -v "$1" &>/dev/null; }
 
-    # 安装系统 skills
-    bunx skills add PFCCLab/paddle-skills -g -y --skill "*" -a claude-code
-    bunx skills add anthropics/skills -g -y --skill skill-creator -a claude-code
-    bunx skills add yamadashy/repomix -g -y --skill repomix-explorer -a claude-code
-    bunx skills add ast-grep/agent-skill -g -y --skill "*" -a claude-code
-    bunx skills add OthmanAdi/planning-with-files -g -y --skill ""planning-with-files"" -a claude-code
+    if has curl; then
+        FETCH="curl -fsSL"
+    elif has wget; then
+        FETCH="wget -qO-"
+    else
+        echo "Error: neither curl nor wget found." >&2; exit 1
+    fi
 
-    # 提示安装全局 mcp
-    echo "For better performance, please manually install global mcp: https://mcp.context7.com/install"
+    # --- uv ---
+    if has uv; then
+        echo "✔ uv already installed: $(uv --version)"
+    else
+        echo "▶ Installing uv..."
+        $FETCH https://astral.sh/uv/install.sh | sh
+        [ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env" 2>/dev/null || true
+        [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env" 2>/dev/null || true
+        export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+        has uv && echo "✔ uv installed: $(uv --version)" || echo "⚠ uv installed but not in PATH, restart your shell"
+    fi
+
+    # --- bun ---
+    if has bun; then
+        echo "✔ bun already installed: $(bun --version)"
+    else
+        echo "▶ Installing bun..."
+        $FETCH https://bun.sh/install | bash
+        [ -f "$HOME/.bun/bin/bun" ] && export BUN_INSTALL="$HOME/.bun" && export PATH="$BUN_INSTALL/bin:$PATH"
+        has bun && echo "✔ bun installed: $(bun --version)" || echo "⚠ bun installed but not in PATH, restart your shell"
+    fi
+
+    # --- gh ---
+    if has gh; then
+        echo "✔ gh already installed: $(gh --version | head -1)"
+    else
+        echo "▶ Installing gh via x-cmd..."
+        if ! has x; then
+            eval "$($FETCH https://get.x-cmd.com)" 2>/dev/null || true
+        fi
+        if has x; then
+            x env use gh
+            echo "✔ gh installed"
+        else
+            echo "⚠ Failed to install gh via x-cmd. Install manually: https://cli.github.com"
+        fi
+    fi
+
+    # --- 全局工具 ---
+    echo "▶ Installing global tools..."
+    bun install -g opencode-ai 2>/dev/null && echo "✔ opencode-ai installed" || echo "⚠ Failed to install opencode-ai"
+    bun install -g ocx 2>/dev/null && echo "✔ ocx installed" || echo "⚠ Failed to install ocx"
+    bun install -g repomix 2>/dev/null && echo "✔ repomix installed" || echo "⚠ Failed to install repomix"
+
+    # --- Claude Code skills ---
+    echo "▶ Installing Claude Code skills..."
+    bunx skills add PFCCLab/paddle-skills -g -y --skill "*" -a claude-code 2>/dev/null && echo "✔ paddle-skills installed" || echo "⚠ Failed to install paddle-skills"
+    bunx skills add anthropics/skills -g -y --skill skill-creator -a claude-code 2>/dev/null && echo "✔ skill-creator installed" || echo "⚠ Failed to install skill-creator"
+    bunx skills add yamadashy/repomix -g -y --skill repomix-explorer -a claude-code 2>/dev/null && echo "✔ repomix-explorer installed" || echo "⚠ Failed to install repomix-explorer"
+    bunx skills add ast-grep/agent-skill -g -y --skill "*" -a claude-code 2>/dev/null && echo "✔ ast-grep installed" || echo "⚠ Failed to install ast-grep"
+    bunx skills add OthmanAdi/planning-with-files -g -y --skill "planning-with-files" -a claude-code 2>/dev/null && echo "✔ planning-with-files installed" || echo "⚠ Failed to install planning-with-files"
+
+    # --- 生成平台配置 ---
+    echo "▶ Generating platform configs..."
+    uvx agent-caster cast 2>/dev/null && echo "✔ Platform configs generated" || echo "⚠ agent-caster not available, run 'just adapt' later"
+
+    echo ""
+    echo "✔ Setup complete!"
+    echo "Tip: Install global MCP for better performance: https://mcp.context7.com/install"
 
 # 从 agents/ 适配生成各平台配置
 adapt:
@@ -41,12 +94,73 @@ update:
     bash auto_get_api_config.sh paa
 
 # 初始化仓库
-setup-repos username:
+setup-repos username="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    REPO_NAMES=("Paddle" "PaddleTest" "PaddleAPITest" "pytorch")
+    UPSTREAMS=("PaddlePaddle/Paddle" "PaddlePaddle/PaddleTest" "PFCCLab/PaddleAPITest" "pytorch/pytorch")
+
+    # 检查是否全部已 clone
+    ALL_CLONED=true
+    for REPO_NAME in "${REPO_NAMES[@]}"; do
+        if [ ! -d ".paa/repos/$REPO_NAME" ]; then
+            ALL_CLONED=false
+            break
+        fi
+    done
+
+    if $ALL_CLONED; then
+        echo "✔ All repos already cloned, nothing to do"
+        exit 0
+    fi
+
+    USERNAME="{{ username }}"
+
+    if [ -z "$USERNAME" ]; then
+        read -rp "GitHub username: " USERNAME
+        if [ -z "$USERNAME" ]; then
+            echo "✘ Username is required." >&2; exit 1
+        fi
+    fi
+
     mkdir -p .paa/repos
-    git clone https://github.com/{{ username }}/Paddle.git .paa/repos/Paddle
-    git clone https://github.com/{{ username }}/PaddleTest.git .paa/repos/PaddleTest
-    git clone https://github.com/{{ username }}/PaddleAPITest.git .paa/repos/PaddleAPITest
-    git clone https://github.com/{{ username }}/pytorch.git .paa/repos/pytorch
+
+    for i in "${!UPSTREAMS[@]}"; do
+        UPSTREAM="${UPSTREAMS[$i]}"
+        REPO_NAME="${REPO_NAMES[$i]}"
+        TARGET=".paa/repos/$REPO_NAME"
+
+        if [ -d "$TARGET" ]; then
+            echo "✔ $REPO_NAME already cloned, skipping"
+            continue
+        fi
+
+        FORK_URL="https://github.com/$USERNAME/$REPO_NAME.git"
+        if git ls-remote "$FORK_URL" &>/dev/null; then
+            echo "▶ Cloning $USERNAME/$REPO_NAME..."
+            git clone "$FORK_URL" "$TARGET"
+        else
+            echo "⚠ Fork not found: $USERNAME/$REPO_NAME"
+            read -rp "  Fork $UPSTREAM to your account? [Y/n] " ans
+            if [[ "${ans:-Y}" =~ ^[Yy]$ ]]; then
+                gh repo fork "$UPSTREAM" --clone --clone-dir "$TARGET"
+                echo "✔ Forked and cloned $UPSTREAM"
+            else
+                echo "▶ Skipping $REPO_NAME"
+                continue
+            fi
+        fi
+
+        # 添加 upstream remote
+        cd "$TARGET"
+        if ! git remote get-url upstream &>/dev/null; then
+            git remote add upstream "https://github.com/$UPSTREAM.git"
+        fi
+        cd - >/dev/null
+    done
+
+    echo "✔ Repos ready at .paa/repos/"
 
 analysis-start api_name additional_prompt tool="opencode":
     #!/usr/bin/env bash
@@ -200,14 +314,11 @@ agentic-repos-setup PADDLE_PATH PADDLETEST_PATH PADDLEAPITEST_PATH PYTORCH_PATH:
 agentic-venv-setup PADDLE_PATH:
     #!/usr/bin/env bash
     set -euo pipefail
-    VENV_PATH="{{ PADDLE_PATH }}/.venv"
-    if [ ! -d "$VENV_PATH" ]; then
-        uv venv --no-project --relocatable --seed "$VENV_PATH"
-    fi
     cd {{ PADDLE_PATH }}/
+    if [ ! -d "{{ PADDLE_PATH }}/.venv" ]; then
+        uv venv --no-project --relocatable --seed --python 3.10
+    fi
     uvx prek install
-
-    cd "$VENV_PATH/.."
     uv pip install func_timeout pandas pebble pynvml pyyaml typer httpx numpy torchvision torch==2.9.1
     uv pip install -r {{ PADDLE_PATH }}/python/requirements.txt
 
@@ -215,15 +326,14 @@ agentic-venv-setup PADDLE_PATH:
 agentic-paddle-build-and-install PADDLE_PATH:
     #!/usr/bin/env bash
     set -euo pipefail
-    VENV_PATH="{{ PADDLE_PATH }}/.venv"
     echo "Building Paddle..."
-    cd "$VENV_PATH"
-    source bin/activate
+    cd "{{ PADDLE_PATH }}"
+    source .venv/bin/activate
     cd {{ PADDLE_PATH }}/build
     cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPY_VERSION=3.10 -DCUDA_ARCH_NAME=Auto -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja
     ninja -j$(nproc)
     echo "Installing Paddle..."
-    cd "$VENV_PATH/.."
+    cd "{{ PADDLE_PATH }}"
     uv pip install {{ PADDLE_PATH }}/build/python/dist/*.whl --no-deps --force-reinstall
     echo "Paddle build and install completed successfully."
 
@@ -231,16 +341,15 @@ agentic-paddle-build-and-install PADDLE_PATH:
 agentic-run-paddle-unittest PADDLE_PATH TEST_FILE:
     #!/usr/bin/env bash
     set -euo pipefail
-    VENV_PATH="{{ PADDLE_PATH }}/.venv"
     cd "{{ PADDLE_PATH }}"
 
     echo "Running Paddle unittest(FLAGS_use_accuracy_compatible_kernel=0) for {{ TEST_FILE }}..."
     FLAGS_use_accuracy_compatible_kernel=0 \
-    uv run --no-project -p "$VENV_PATH" python "{{ TEST_FILE }}"
+    uv run --no-project python "{{ TEST_FILE }}"
 
     echo "Running Paddle unittest(FLAGS_use_accuracy_compatible_kernel=1) for {{ TEST_FILE }}..."
     FLAGS_use_accuracy_compatible_kernel=1 \
-    uv run --no-project -p "$VENV_PATH" python "{{ TEST_FILE }}"
+    uv run --no-project python "{{ TEST_FILE }}"
 
 # Run PaddleTest functional test for a specific API
 agentic-run-paddletest PADDLE_PATH PADDLETEST_PATH TEST_FILE:
