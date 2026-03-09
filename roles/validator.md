@@ -15,8 +15,8 @@ skills:
 
 capabilities:
   - read
-  - write-report
-  - readonly-bash
+  - write
+  - safe-bash
   - bash:
       - "uv*"
       - "just"

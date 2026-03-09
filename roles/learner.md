@@ -14,10 +14,10 @@ skills:
 
 capabilities:
   - read
-  - write-report
+  - write
   - web-access
   - context7
-  - gh_grep
+  - gh-search
 ---
 
 # L - PR Learner

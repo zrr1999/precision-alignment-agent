@@ -94,15 +94,15 @@ just alignment-start <api_name> claude
 
 关键目录：
 
-- `.agents/roles/` — 规范 Agent 定义（YAML frontmatter + Markdown prompt），唯一真实来源
+- `roles/` — 规范 Agent 定义（YAML frontmatter + Markdown prompt），唯一真实来源
 - `.agents/skills/` — 平台无关的 skills
 - `knowledge/` — 人工维护的知识库（Agent 只读）
-- `.opencode/`、`.claude/` — 由 [agent-caster](https://github.com/gouzil/agent-caster) 生成的平台配置，勿手动编辑
+- `.opencode/`、`.claude/` — 由 [role-forge](https://github.com/zrr1999/role-forge) 生成的平台配置，勿手动编辑
 - `.paa/` — 运行时数据（repos、worktree、sessions、config、memory）
 
 ### 编辑 Agent
 
-1. 编辑 `.agents/roles/{name}.md` 中的规范定义（YAML frontmatter = 元数据，正文 = prompt）
+1. 编辑 `roles/{name}.md` 中的规范定义（YAML frontmatter = 元数据，正文 = prompt）
 2. 运行 `just adapt` 重新生成各平台配置
 3. **不要直接编辑** `.opencode/` 或 `.claude/` 下的生成文件
 

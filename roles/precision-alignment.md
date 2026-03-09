@@ -3,7 +3,7 @@ name: precision-alignment
 description: >
   Precision Alignment Orchestrator. Directly plans, coordinates, and drives
   the entire precision alignment workflow by invoking specialized sub-agents.
-role: primary
+role: all
 
 model:
   tier: coding
@@ -15,9 +15,9 @@ skills:
 
 capabilities:
   - read
-  - write-report
-  - web-read
-  - readonly-bash
+  - write
+  - web-access
+  - safe-bash
   - delegate:
       - explorer
       - learner

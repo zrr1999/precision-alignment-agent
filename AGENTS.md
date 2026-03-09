@@ -25,7 +25,7 @@ When you are performing **precision alignment work**, you **must** follow these 
 
 ## 2. Developing the precision-alignment-agent project itself
 
-When you are **developing, refactoring, or extending this project** (for example, editing agents in `.agents/roles/`, skills, tools, or project configuration), the goal is to improve this repository as a tool.
+When you are **developing, refactoring, or extending this project** (for example, editing agents in `roles/`, skills, tools, or project configuration), the goal is to improve this repository as a tool.
 
 In this mode:
 
@@ -36,7 +36,7 @@ In this mode:
 
 ## Architecture Overview
 
-The system uses a **flat orchestration** model: a single Main Agent (defined in `.agents/roles/precision-alignment.md`) directly coordinates all sub-agents.
+The system uses a **flat orchestration** model: a single Main Agent (defined in `roles/precision-alignment.md`) directly coordinates all sub-agents.
 
 ```
 Main Agent (Orchestrator)
@@ -48,7 +48,7 @@ Main Agent (Orchestrator)
   └── @reviewer        Final review + PR (bash+git)
 ```
 
-There is also a `precision-analysis` orchestrator (`.agents/roles/precision-analysis.md`) which delegates only to `@explorer` and `@learner` for read-only analysis.
+There is also a `precision-analysis` orchestrator (`roles/precision-analysis.md`) which delegates only to `@explorer` and `@learner` for read-only analysis.
 
 There is no intermediate planning layer. The Main Agent reads knowledge, plans the fix strategy, orchestrates the fix-validate loop (Aligner → Diagnostician → Validator), and makes all strategic decisions with full session context.
 
@@ -56,14 +56,14 @@ There is no intermediate planning layer. The Main Agent reads knowledge, plans t
 
 ## Adapter Pattern
 
-Agent definitions are maintained in a **platform-agnostic canonical format** under `.agents/roles/` (YAML frontmatter + Markdown prompt), and platform-specific configurations (`.opencode/`, `.claude/`) are **generated** by [agent-caster](https://github.com/gouzil/agent-caster). Generation is configured in `refit.toml`.
+Agent definitions are maintained in a **platform-agnostic canonical format** under `roles/` (YAML frontmatter + Markdown prompt), and platform-specific configurations (`.opencode/`, `.claude/`) are **generated** by [role-forge](https://github.com/zrr1999/role-forge). Generation is configured in `roles.toml`.
 
 ### Editing agents
 
-1. Edit the canonical definition in `.agents/roles/{name}.md` (YAML frontmatter = metadata, body = prompt)
+1. Edit the canonical definition in `roles/{name}.md` (YAML frontmatter = metadata, body = prompt)
 2. Run `just adapt` to regenerate platform-specific configs
 3. **Do not edit `.opencode/agents/*.md` or `.claude/agents/*.md` directly** — they are generated artifacts
 
 ### Adding a new adapter target
 
-Add a new `[targets.{platform}]` section to `refit.toml` with the appropriate model mappings and output directory. Then run `just adapt`.
+Add a new `[targets.{platform}]` section to `roles.toml` with the appropriate model mappings and output directory. Then run `just adapt`.

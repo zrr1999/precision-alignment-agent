@@ -14,8 +14,8 @@ skills:
 
 capabilities:
   - read
-  - write-report
-  - web-read
+  - write
+  - web-access
   - context7
   - bash:
       - "npx repomix@latest*"

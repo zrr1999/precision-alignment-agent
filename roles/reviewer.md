@@ -17,8 +17,8 @@ skills:
 capabilities:
   - read
   - write
-  - web-read
-  - readonly-bash
+  - web-access
+  - safe-bash
   - bash:
       - "uv*"
       - "git*"

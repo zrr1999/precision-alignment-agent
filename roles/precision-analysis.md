@@ -3,7 +3,7 @@ name: precision-analysis
 description: >
   Precision Analysis (read-only). Explore-only mode for research
   and code tracing without making any changes.
-role: primary
+role: all
 
 model:
   tier: coding
@@ -15,8 +15,8 @@ skills:
 
 capabilities:
   - read
-  - web-read
-  - readonly-bash
+  - web-access
+  - safe-bash
   - delegate:
       - explorer
       - learner

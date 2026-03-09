@@ -71,15 +71,15 @@ setup:
 
     # --- 生成平台配置 ---
     echo "▶ Generating platform configs..."
-    uvx agent-caster cast 2>/dev/null && echo "✔ Platform configs generated" || echo "⚠ agent-caster not available, run 'just adapt' later"
+    uvx role-forge render 2>/dev/null && echo "✔ Platform configs generated" || echo "⚠ role-forge not available, run 'just adapt' later"
 
     echo ""
     echo "✔ Setup complete!"
     echo "Tip: Install global MCP for better performance: https://mcp.context7.com/install"
 
-# 从 agents/ 适配生成各平台配置
+# 从 roles/ 适配生成各平台配置
 adapt:
-    uvx agent-caster cast
+    uvx role-forge render
 
 # 更新配置和 skills（adapt + skills update）
 update:

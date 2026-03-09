@@ -16,7 +16,7 @@ skills:
 capabilities:
   - read
   - write
-  - readonly-bash
+  - safe-bash
   - bash:
       - "nproc"
       - "uv*"
