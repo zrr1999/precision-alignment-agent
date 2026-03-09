@@ -249,8 +249,6 @@ alignment-start api_name tool="opencode" additional_prompt="":
 
     cd $PADDLE_PATH
     just agentic-venv-setup $PADDLE_PATH
-    mkdir -p build
-    cd build
     just agentic-paddle-build-and-install $PADDLE_PATH
 
     echo "Successfully setup worktree and created venv"
@@ -316,11 +314,13 @@ agentic-venv-setup PADDLE_PATH:
     set -euo pipefail
     cd {{ PADDLE_PATH }}/
     if [ ! -d "{{ PADDLE_PATH }}/.venv" ]; then
-        uv venv --no-project --relocatable --seed --python 3.10
+        uv venv --relocatable --seed --python 3.10
     fi
+    source .venv/bin/activate
     uvx prek install
-    uv pip install func_timeout pandas pebble pynvml pyyaml typer httpx numpy torchvision torch==2.9.1
     uv pip install -r {{ PADDLE_PATH }}/python/requirements.txt
+    uv pip install func_timeout pandas pebble pynvml pyyaml typer httpx "numpy<2.0" torchvision torch==2.9.1
+    echo "Dependencies install completed successfully in {{PADDLE_PATH}}."
 
 # Build and install Paddle in virtual environment
 agentic-paddle-build-and-install PADDLE_PATH:
@@ -329,7 +329,8 @@ agentic-paddle-build-and-install PADDLE_PATH:
     echo "Building Paddle..."
     cd "{{ PADDLE_PATH }}"
     source .venv/bin/activate
-    cd {{ PADDLE_PATH }}/build
+    mkdir -p build
+    cd build
     cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPY_VERSION=3.10 -DCUDA_ARCH_NAME=Auto -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja
     ninja -j$(nproc)
     echo "Installing Paddle..."

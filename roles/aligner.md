@@ -10,7 +10,8 @@ model:
   tier: coding
   temperature: 0.1
 
-skills: []
+skills:
+  - paddle-debug
 
 capabilities:
   - read
