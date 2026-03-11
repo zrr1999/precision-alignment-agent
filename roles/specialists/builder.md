@@ -1,7 +1,7 @@
 ---
-name: diagnostician
+name: builder
 description: >
-  Diagnostician. Builds Paddle, runs smoke tests, diagnoses failures,
+  Builder. Builds Paddle, runs smoke tests, diagnoses failures,
   commits successful changes. The build-and-test workhorse.
 role: subagent
 
@@ -26,7 +26,7 @@ capabilities:
       - "git commit*"
 ---
 
-# D - Diagnostician
+# D - Builder
 
 Build Paddle, run smoke tests, diagnose failures, and commit successful changes.
 
@@ -60,7 +60,7 @@ After build + smoke test both succeed:
 
 ## Session Report
 
-Write to `.paa/sessions/{api_name}/diagnostician/{short-title}.md` with: fault summary, error message, root cause, fix applied or escalation reason.
+Write to `.paa/sessions/{api_name}/builder/{short-title}.md` with: fault summary, error message, root cause, fix applied or escalation reason.
 
 ## Constraints
 

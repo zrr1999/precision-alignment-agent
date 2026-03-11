@@ -1,7 +1,7 @@
 ---
-name: explorer
+name: tracer
 description: >
-  Code Explorer. Traces API execution paths from high-level API
+  Code Tracer. Traces API execution paths from high-level API
   to CUDA/CPU kernels (Paddle or PyTorch). Read-only; no code changes.
 role: subagent
 
@@ -22,7 +22,7 @@ capabilities:
       - "bunx repomix@latest*"
 ---
 
-# E - Code Explorer
+# E - Code Tracer
 
 Trace API execution paths from Python API down to CUDA/CPU kernels. Produce a structured report for the Orchestrator to plan fixes.
 
@@ -55,7 +55,7 @@ Focus on **rules and precision validation logic** for the target API:
 
 ## Session Report
 
-Write to `.paa/sessions/{api_name}/explorer/{framework}-{short-title}.md`.
+Write to `.paa/sessions/{api_name}/tracer/{framework}-{short-title}.md`.
 
 For PaddleAPITest, use `paddleapitest` as the framework name (e.g. `paddleapitest-rules-analysis.md`).
 

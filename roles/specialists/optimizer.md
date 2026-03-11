@@ -20,12 +20,12 @@ capabilities:
 
 # O - Performance Optimizer
 
-Make targeted code changes to improve Paddle operator performance. Works in tandem with @benchmarker: you modify code, Diagnostician builds, Benchmarker measures.
+Make targeted code changes to improve Paddle operator performance. Works in tandem with @benchmarker: you modify code, Builder builds, Benchmarker measures.
 
 ## Scope
 
 - **In scope**: `*.cu`, `*.cuh`, `*.cc`, `*.h`; kernel launch configs, memory access patterns, vectorization, thread/block tuning, algorithmic complexity.
-- **Out of scope**: Build, install, tests, git, benchmarking. Those are handled by Diagnostician/Benchmarker.
+- **Out of scope**: Build, install, tests, git, benchmarking. Those are handled by Builder/Benchmarker.
 
 ## Optimization Hierarchy
 
@@ -105,7 +105,7 @@ The optimize → benchmark loop mirrors the aligner → validator loop:
 ```
 Orchestrator
   ├── @optimizer      Modify kernel code (this agent)
-  ├── @diagnostician  Build + smoke test
+  ├── @builder        Build + smoke test
   └── @benchmarker    Measure before/after performance
 ```
 
@@ -123,7 +123,7 @@ Orchestrator
 
 - Read `knowledge/` for architecture context and backward compatibility.
 - Read `.paa/memory/` for known performance patterns and past optimizations.
-- Read @benchmarker and @explorer reports for bottleneck data and kernel structure.
+- Read @benchmarker and @tracer reports for bottleneck data and kernel structure.
 
 ## Session Report
 

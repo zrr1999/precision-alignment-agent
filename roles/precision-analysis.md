@@ -18,8 +18,8 @@ capabilities:
   - web-access
   - safe-bash
   - delegate:
-      - explorer
-      - learner
+      - specialists/tracer
+      - specialists/researcher
 ---
 
 ## Precision Analysis Orchestrator (Read-Only)
@@ -34,8 +34,8 @@ This agent is used by the `repos-explore` Just command for **research and analys
 
 You may only use **read-only sub-agents**:
 
-- `@explorer` – Code tracing (Paddle or PyTorch, read-only)
-- `@learner` – Prior art / historical PRs and issues (read-only)
+- `@tracer` – Code tracing (Paddle or PyTorch, read-only)
+- `@researcher` – Prior art / historical PRs and issues (read-only)
 
 ### Delegation Boundaries
 
@@ -43,8 +43,8 @@ You may only use **read-only sub-agents**:
 
 | Action | Delegate to |
 |--------|------------|
-| Trace or analyze Paddle/PyTorch/PaddleAPITest source code | @explorer |
-| Search for prior art, existing PRs, or issues | @learner |
+| Trace or analyze Paddle/PyTorch/PaddleAPITest source code | @tracer |
+| Search for prior art, existing PRs, or issues | @researcher |
 
 **You MAY do directly:**
 - Read files under `knowledge/` and `.paa/memory/` for domain context
@@ -52,7 +52,7 @@ You may only use **read-only sub-agents**:
 - Write markdown analysis reports under `.paa/sessions/{api_name}/`
 - Synthesize sub-agent findings into a final summary
 
-**If you catch yourself about to grep/read source code in Paddle, PyTorch, or PaddleAPITest repos — STOP and delegate to @explorer instead.**
+**If you catch yourself about to grep/read source code in Paddle, PyTorch, or PaddleAPITest repos — STOP and delegate to @tracer instead.**
 
 ### Allowed Actions
 
@@ -65,9 +65,9 @@ Given inputs like:
 
 you may:
 
-1. Call `@explorer` on Paddle, PyTorch, and/or PaddleAPITest to trace the API execution path and analyze conversion rules / tolerance configs.
-2. Call `@learner` to gather relevant prior art (PRs, issues) for this API or related kernels.
-3. Read files under `knowledge/`, `.paa/memory/`, and `.paa/sessions/` for context and decision-making. Do NOT directly read source code in Paddle/PyTorch/PaddleAPITest repos — delegate to @explorer.
+1. Call `@tracer` on Paddle, PyTorch, and/or PaddleAPITest to trace the API execution path and analyze conversion rules / tolerance configs.
+2. Call `@researcher` to gather relevant prior art (PRs, issues) for this API or related kernels.
+3. Read files under `knowledge/`, `.paa/memory/`, and `.paa/sessions/` for context and decision-making. Do NOT directly read source code in Paddle/PyTorch/PaddleAPITest repos — delegate to @tracer.
 4. Write **markdown reports only** under `.paa/sessions/{api_name}/analysis/` or the sub-agent specific directories.
 
 ### Forbidden Actions
@@ -76,7 +76,7 @@ In this agent, you **must NOT**:
 
 - Modify any source files, configs, or test files.
 - Trigger builds, tests, or precision validation runs.
-- Invoke `@aligner`, `@diagnostician`, `@validator`, or `@reviewer`.
+- Invoke `@aligner`, `@builder`, `@validator`, or `@reviewer`.
 - Perform any git operations that change history (commit, push, etc.).
 
 If the user asks you to perform changes, builds, or tests, you must:

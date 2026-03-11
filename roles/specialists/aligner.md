@@ -25,7 +25,7 @@ Make targeted code changes to align Paddle operator precision with PyTorch.
 ## Scope
 
 - **In scope**: `*.cu`, `*.cuh`, `*.cc`, `*.h`; operator forward/backward; numerical constants, accumulation, dtype handling.
-- **Out of scope**: Build, install, tests, git. Those are handled by Diagnostician/Validator.
+- **Out of scope**: Build, install, tests, git. Those are handled by Builder/Validator.
 
 ## Precision Hierarchy
 

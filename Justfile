@@ -87,8 +87,9 @@ update:
     set -euo pipefail
     PADDLEAPITEST_PATH="${PADDLEAPITEST_PATH:=.paa/repos/PaddleAPITest}"
 
+    git pull
     just adapt
-    bunx skills update
+    bunx skills update -g
 
     cd $PADDLEAPITEST_PATH
     bash auto_get_api_config.sh paa
@@ -162,7 +163,63 @@ setup-repos username="":
 
     echo "✔ Repos ready at .paa/repos/"
 
-analysis-start api_name additional_prompt tool="opencode":
+# TODO: worktree need better method. loop?
+start api_name tool="opencode" additional_prompt="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    PAA_ROOT=$(pwd)
+
+    PADDLE_PATH="${PADDLE_PATH:=.paa/repos/Paddle}"
+    PYTORCH_PATH="${PYTORCH_PATH:=.paa/repos/pytorch}"
+    PADDLETEST_PATH="${PADDLETEST_PATH:=.paa/repos/PaddleTest}"
+    PADDLEAPITEST_PATH="${PADDLEAPITEST_PATH:=.paa/repos/PaddleAPITest}"
+
+    PADDLE_PATH="$(cd "$PADDLE_PATH" && pwd)"
+    PYTORCH_PATH="$(cd "$PYTORCH_PATH" && pwd)"
+    PADDLETEST_PATH="$(cd "$PADDLETEST_PATH" && pwd)"
+    PADDLEAPITEST_PATH="$(cd "$PADDLEAPITEST_PATH" && pwd)"
+
+    echo "PYTORCH_PATH: $PYTORCH_PATH"
+    echo "PADDLETEST_PATH: $PADDLETEST_PATH"
+    echo "PADDLEAPITEST_PATH: $PADDLEAPITEST_PATH"
+
+    echo "Setting up worktree"
+    mkdir -p .paa/worktree
+    cd $PADDLE_PATH
+    git switch -c PAA/develop 2>/dev/null || git switch PAA/develop
+    git pull upstream develop
+    if [ -d "$PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}" ]; then
+        cd "$PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}"
+    else
+        git worktree add $PAA_ROOT/.paa/worktree/Paddle_{{ api_name }} -b precision-alignment-agent/{{ api_name }}
+    fi
+
+    PADDLE_PATH=$PAA_ROOT/.paa/worktree/Paddle_{{ api_name }}
+    VENV_PATH=$PADDLE_PATH/.venv
+    echo "PADDLE_PATH: $PADDLE_PATH"
+
+    cd $PADDLE_PATH
+    just agentic-venv-setup $PADDLE_PATH
+    just agentic-paddle-build-and-install $PADDLE_PATH
+
+    echo "Successfully setup worktree and created venv"
+
+    cd $PAA_ROOT
+
+    AGENT="paddle-agent"
+    PROMPT="[Start for {{ api_name }} , with inputs: \
+        paddle_path=$PADDLE_PATH, \
+        pytorch_path=$PYTORCH_PATH, \
+        paddletest_path=$PADDLETEST_PATH, \
+        paddleapitest_path=$PADDLEAPITEST_PATH, \
+        venv_path=$VENV_PATH] \
+        {{ additional_prompt }}"
+
+    just _launch-agent "{{ tool }}" "$AGENT" "$PROMPT"
+
+
+analysis-start api_name tool="opencode" additional_prompt="":
     #!/usr/bin/env bash
     set -euo pipefail
 

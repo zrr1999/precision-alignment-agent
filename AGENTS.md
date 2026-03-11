@@ -40,17 +40,17 @@ The system uses a **flat orchestration** model: a single Main Agent (defined in 
 
 ```
 Main Agent (Orchestrator)
-  ├── @explorer        Code tracing (read-only)
-  ├── @learner         PR prior art (read-only)
+  ├── @tracer          Code tracing (read-only)
+  ├── @researcher      PR prior art (read-only)
   ├── @aligner         Code changes (write)
-  ├── @diagnostician   Build + smoke test + commit (bash)
+  ├── @builder         Build + smoke test + commit (bash)
   ├── @validator       Precision test (bash)
   └── @reviewer        Final review + PR (bash+git)
 ```
 
-There is also a `precision-analysis` orchestrator (`roles/precision-analysis.md`) which delegates only to `@explorer` and `@learner` for read-only analysis.
+There is also a `precision-analysis` orchestrator (`roles/precision-analysis.md`) which delegates only to `@tracer` and `@researcher` for read-only analysis.
 
-There is no intermediate planning layer. The Main Agent reads knowledge, plans the fix strategy, orchestrates the fix-validate loop (Aligner → Diagnostician → Validator), and makes all strategic decisions with full session context.
+There is no intermediate planning layer. The Main Agent reads knowledge, plans the fix strategy, orchestrates the fix-validate loop (Aligner → Builder → Validator), and makes all strategic decisions with full session context.
 
 ---
 

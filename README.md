@@ -8,19 +8,19 @@
 
 ```
 Main Agent (Orchestrator)
-  ├── @explorer        代码追踪（只读）
-  ├── @learner         PR 先例研究（只读）
+  ├── @tracer          代码追踪（只读）
+  ├── @researcher      PR 先例研究（只读）
   ├── @aligner         精度代码修改（写入）
-  ├── @diagnostician   构建 + 冒烟测试 + 提交
+  ├── @builder         构建 + 冒烟测试 + 提交
   ├── @validator       精度验证测试
   └── @reviewer        最终审查 + 创建 PR
 ```
 
 工作流分为 4 个阶段：
 
-1. **探索与学习**（并行）：Explorer 追踪 Paddle/PyTorch 实现路径，Learner 搜索历史 PR
+1. **探索与学习**（并行）：Tracer 追踪 Paddle/PyTorch 实现路径，Researcher 搜索历史 PR
 2. **规划**：Orchestrator 基于报告制定修复计划
-3. **修复与验证循环**（最多 5 次迭代）：Aligner → Diagnostician → Validator → 评估
+3. **修复与验证循环**（最多 5 次迭代）：Aligner → Builder → Validator → 评估
 4. **最终审查**：Reviewer 验证并创建 PR
 
 ## 准备工作

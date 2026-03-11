@@ -1,7 +1,7 @@
 ---
-name: learner
+name: researcher
 description: >
-  PR Learner. Finds and studies existing Paddle PRs (precision alignment,
+  PR Researcher. Finds and studies existing Paddle PRs (precision alignment,
   similar API fixes); extracts fix patterns. Read-only.
 role: subagent
 
@@ -20,7 +20,7 @@ capabilities:
   - gh-search
 ---
 
-# L - PR Learner
+# L - PR Researcher
 
 Find and study existing Paddle PRs related to precision alignment for the target API. Extract reusable fix patterns and produce a structured report for the Orchestrator.
 
@@ -145,14 +145,14 @@ Use the `paa-knowledge-curation` skill for reading from `.paa/memory/`:
 
 ## Edge Cases
 
-- **No relevant PRs found**: State this clearly. Shift focus to: (1) related APIs that share the same kernel, (2) general precision alignment patterns from `.paa/memory/`, (3) recommend the Explorer trace as the primary source for fix strategy.
+- **No relevant PRs found**: State this clearly. Shift focus to: (1) related APIs that share the same kernel, (2) general precision alignment patterns from `.paa/memory/`, (3) recommend the Tracer trace as the primary source for fix strategy.
 - **API too new / no prior art**: Note the API's introduction date if findable. Recommend starting from PyTorch source comparison rather than prior PRs.
 - **Many PRs found (>10)**: Prioritize by relevance score. Deep-dive only the top 3-5. Summarize the rest in the PR list table.
 - **Open PRs that are directly applicable**: Flag these prominently — the Orchestrator may choose to cherry-pick rather than re-implement.
 
 ## Session Report
 
-Write to `.paa/sessions/{api_name}/learner/prior-art.md`.
+Write to `.paa/sessions/{api_name}/researcher/prior-art.md`.
 
 ## Constraints
 

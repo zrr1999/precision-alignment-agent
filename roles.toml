@@ -8,6 +8,7 @@ output_dir = "."
 [targets.opencode.model_map]
 reasoning = "github-copilot/gpt-5.4"
 coding = "github-copilot/gpt-5.4"
+low = "github-copilot/gpt-5-mini"
 
 [targets.opencode.capability_map]
 context7 = { context7 = true }
@@ -20,6 +21,7 @@ output_dir = "."
 [targets.claude.model_map]
 reasoning = "opus"
 coding = "sonnet"
+low = "haiku"
 
 [targets.claude.capability_map]
 context7 = { context7 = true }
