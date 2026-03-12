@@ -444,9 +444,7 @@ agentic-run-precision-test PADDLE_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DIR:
 
     FLAGS_use_accuracy_compatible_kernel=1 \
     uv run --no-project -p "$VENV_PATH" python engineV2.py \
-        --atol=0 \
-        --rtol=0 \
-        --accuracy=True \
+        --accuracy_stable=True \
         --api_config_file="{{ CONFIG_FILE }}" \
         --log_dir="PAA_test_log/{{ LOG_DIR }}"
 
@@ -469,9 +467,7 @@ agentic-run-precision-cpu-test PADDLE_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DI
     FLAGS_use_accuracy_compatible_kernel=1 \
     uv run --no-project -p "$VENV_PATH" python engineV2.py \
         --test_cpu=1 \
-        --atol=0 \
-        --rtol=0 \
-        --accuracy=True \
+        --accuracy_stable=True \
         --api_config_file="{{ CONFIG_FILE }}" \
         --log_dir="PAA_test_log/{{ LOG_DIR }}"
 
