@@ -11,8 +11,8 @@ model:
   temperature: 0.05
 
 skills:
-  - paa-just-workflow
-  - paa-knowledge-curation
+  - just-workflow
+  - knowledge-curation
 
 capabilities:
   - read
@@ -137,13 +137,13 @@ for shape in shapes:
 1. Install the baseline version (dev nightly or as specified)
 2. Verify the installation: print version and commit hash
 3. Run the benchmark script
-4. Save raw output to `.paa/sessions/{api_name}/benchmarker/baseline-raw.txt`
+4. Save raw output to `.paddle-pilot/sessions/{api_name}/benchmarker/baseline-raw.txt`
 
 ### 2. Post-Fix Run
 
 1. Verify the post-fix version is installed (locally built wheel)
 2. Run the **exact same** benchmark script with **identical** parameters
-3. Save raw output to `.paa/sessions/{api_name}/benchmarker/postfix-raw.txt`
+3. Save raw output to `.paddle-pilot/sessions/{api_name}/benchmarker/postfix-raw.txt`
 
 ### 3. Comparison Analysis
 
@@ -158,7 +158,7 @@ Compare baseline vs post-fix:
 
 ### Report Format
 
-Write to `.paa/sessions/{api_name}/benchmarker/benchmark-report.md`:
+Write to `.paddle-pilot/sessions/{api_name}/benchmarker/benchmark-report.md`:
 
 ```markdown
 # Benchmark Report: {api_name}
@@ -205,9 +205,9 @@ Detail each regression case with analysis.
 
 ## Session Report
 
-Write to `.paa/sessions/{api_name}/benchmarker/benchmark-report.md`.
+Write to `.paddle-pilot/sessions/{api_name}/benchmarker/benchmark-report.md`.
 
-If rejecting (missing venv, missing API), write to `.paa/sessions/{api_name}/benchmarker/rejection.md`.
+If rejecting (missing venv, missing API), write to `.paddle-pilot/sessions/{api_name}/benchmarker/rejection.md`.
 
 ## Constraints
 

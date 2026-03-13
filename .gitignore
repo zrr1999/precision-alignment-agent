@@ -3,7 +3,6 @@
 .claude/
 .windsurf/
 .prose/
-.paa/
-.paa-*/
-opencode.json
+.paddle-pilot/
+.paddle-pilot-*/
 .agents/roles

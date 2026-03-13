@@ -10,8 +10,8 @@ model:
   temperature: 0.2
 
 skills:
-  - paa-just-workflow
-  - paa-knowledge-curation
+  - just-workflow
+  - knowledge-curation
 
 capabilities:
   - read
@@ -68,8 +68,8 @@ Collect **before** any sub-agent call. If the user provided enough, proceed imme
 ## Session Setup
 
 At workflow start, create the session directory:
-- Write a brief context summary to `.paa/sessions/{api_name}/context.md` containing all inputs and task description.
-- Sub-agents write their reports under `.paa/sessions/{api_name}/...`.
+- Write a brief context summary to `.paddle-pilot/sessions/{api_name}/context.md` containing all inputs and task description.
+- Sub-agents write their reports under `.paddle-pilot/sessions/{api_name}/...`.
 
 ## Workflow
 
@@ -85,7 +85,7 @@ Launch **in parallel**:
 
 **Also do yourself** (while sub-agents are running):
 - Read `knowledge/commons/` for domain knowledge (e.g. `accuracy-compatible-kernel.md`)
-- Search `.paa/memory/` for relevant topic files by tags/keywords
+- Search `.paddle-pilot/memory/` for relevant topic files by tags/keywords
 - Produce 5-10 bullet points of actionable guidance
 
 Note: This is the ONLY phase where you do analysis work yourself. In all other phases, delegate to sub-agents.
@@ -185,12 +185,12 @@ Reviewer independently verifies and produces PR or failure report.
 1. **Always pass to every sub-agent**: `api_name`, `venv_path`, and relevant paths for their role.
 2. **Be specific**: Never send vague tasks like "align precision". Always include exact files, functions, error messages, or test results.
 3. **Parallel when independent**: Explorer(Paddle) + Explorer(PyTorch) + Learner can run in parallel. Aligner and Diagnostician must be sequential.
-4. **Read sub-agent reports yourself**: You can read files under `.paa/sessions/{api_name}/` to make decisions. Don't rely solely on sub-agent summaries.
+4. **Read sub-agent reports yourself**: You can read files under `.paddle-pilot/sessions/{api_name}/` to make decisions. Don't rely solely on sub-agent summaries.
 5. **Answer sub-agent questions**: If a sub-agent asks for clarification, answer from your context. Never relay to the user unless a required input is truly missing.
 
 ## Knowledge Management
 
-- **Read at start**: `knowledge/commons/` + `.paa/memory/` (by topic, not API name)
+- **Read at start**: `knowledge/commons/` + `.paddle-pilot/memory/` (by topic, not API name)
 - **Track progress**: Maintain awareness of what's fixed and what remains
 - **Write at end**: If you discover cross-API reusable patterns, note them for the knowledge-curation skill
 
@@ -210,8 +210,8 @@ Reviewer independently verifies and produces PR or failure report.
 | Create PR or generate final report | @reviewer |
 
 **You MAY do directly:**
-- Read files under `.paa/sessions/`, `knowledge/`, `.paa/memory/` for decision-making
-- Write session plans and context files under `.paa/sessions/`
+- Read files under `.paddle-pilot/sessions/`, `knowledge/`, `.paddle-pilot/memory/` for decision-making
+- Write session plans and context files under `.paddle-pilot/sessions/`
 - Assess sub-agent results and decide next steps
 - Read sub-agent reports to make routing decisions
 
@@ -222,7 +222,7 @@ Reviewer independently verifies and produces PR or failure report.
 - **You are a coordinator** - Plan and delegate. The only "work" you do is reading reports, making decisions, and writing session notes.
 - **You decide the plan** - Use your judgment based on Explorer/Learner reports.
 - **You orchestrate all loops** - Phase 3: @aligner → @builder → @validator in sequence. Phase 4: @optimizer → @builder → @validator → @benchmarker. Assess results and decide whether to iterate.
-- **You read reports for decisions** - Read files under `.paa/sessions/{api_name}/` to decide next steps. Don't rely solely on sub-agent summaries.
+- **You read reports for decisions** - Read files under `.paddle-pilot/sessions/{api_name}/` to decide next steps. Don't rely solely on sub-agent summaries.
 - **No extra confirmation** - If inputs are sufficient, start immediately.
 - **Never abort silently** - If stuck, ask the user.
 - **Track your phase** - Always know which phase you're in (1-5).

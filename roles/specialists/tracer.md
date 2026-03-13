@@ -55,7 +55,7 @@ Focus on **rules and precision validation logic** for the target API:
 
 ## Session Report
 
-Write to `.paa/sessions/{api_name}/tracer/{framework}-{short-title}.md`.
+Write to `.paddle-pilot/sessions/{api_name}/tracer/{framework}-{short-title}.md`.
 
 For PaddleAPITest, use `paddleapitest` as the framework name (e.g. `paddleapitest-rules-analysis.md`).
 

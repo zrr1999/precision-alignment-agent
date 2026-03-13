@@ -1,11 +1,11 @@
 ---
-name: paa-knowledge-curation
-description: Curate, read, and persist long-term precision-alignment knowledge into `.paa/memory/` as flat, topic-based files (usually API-agnostic), and help agents retrieve it.
+name: knowledge-curation
+description: Curate, read, and persist long-term precision-alignment knowledge into `.paddle-pilot/memory/` as flat, topic-based files (usually API-agnostic), and help agents retrieve it.
 ---
 
-## `.paa/memory/` layout (long-term, topic-based)
+## `.paddle-pilot/memory/` layout (long-term, topic-based)
 
-All **long-term** knowledge (cross-task patterns, conclusions, lessons) SHOULD be stored under `.paa/memory/` as **flat Markdown files**, each file representing **one topic** (similar to a skill).
+All **long-term** knowledge (cross-task patterns, conclusions, lessons) SHOULD be stored under `.paddle-pilot/memory/` as **flat Markdown files**, each file representing **one topic** (similar to a skill).
 Topic filenames should use conceptual names and **avoid API names**, for example:
 
 - `accuracy-compatible-kernel.md`
@@ -15,8 +15,8 @@ Topic filenames should use conceptual names and **avoid API names**, for example
 
 Agents (Planner / Diagnostician / Validator / Reviewer) use this skill to:
 
-- Read topic files from `.paa/memory/` by filename and/or tags.
-- Append new, abstracted lessons from `.paa/sessions/...` into existing topics, or create new topics when needed.
+- Read topic files from `.paddle-pilot/memory/` by filename and/or tags.
+- Append new, abstracted lessons from `.paddle-pilot/sessions/...` into existing topics, or create new topics when needed.
 
 Each topic file is a standalone Markdown file with:
 
@@ -42,7 +42,7 @@ summary: Brief outcome-focused summary of the core pattern or lesson.
 
 When starting or updating a precision-alignment task, agents call this skill to load **topic-level**, API-agnostic guidance:
 
-- Search within `.paa/memory/` using `glob` + `grep` (or equivalent) by:
+- Search within `.paddle-pilot/memory/` using `glob` + `grep` (or equivalent) by:
   - topic filename (e.g. `accuracy-compatible-kernel`)
   - tags (e.g. `broadcast`, `float16`, `gpu`, `compile`, `accuracy-compatible`)
 - Prioritize:
@@ -56,7 +56,7 @@ When starting or updating a precision-alignment task, agents call this skill to 
 The output should be a **short, actionable knowledge brief**:
 
 - 3–7 bullet points of key lessons, constraints, and do/don’t.
-- A short list of the most relevant `.paa/memory/*.md` topic files for deeper reading.
+- A short list of the most relevant `.paddle-pilot/memory/*.md` topic files for deeper reading.
 
 ## Writing and updating knowledge (from sessions to memory)
 
@@ -67,7 +67,7 @@ At the end of a task (or when a milestone reveals a high-value, **reusable** pat
   - `elementwise-reduction-precision`
   - `gpu-compile-error-patterns`
   - `precision-testing-high-signal-cases`
-- Update `.paa/memory/{topic}.md` by:
+- Update `.paddle-pilot/memory/{topic}.md` by:
   - Appending a new dated entry with summary, key observations, and procedures; or
   - Refining existing content if it is clearly the same pattern.
 

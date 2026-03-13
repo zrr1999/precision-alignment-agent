@@ -53,11 +53,11 @@ Make targeted code changes to align Paddle operator precision with PyTorch.
 ## Knowledge
 
 - Read `knowledge/` for backward compatibility context.
-- Read `.paa/memory/` for common issues and fixes.
+- Read `.paddle-pilot/memory/` for common issues and fixes.
 
 ## Session Report
 
-Write to `.paa/sessions/{api_name}/aligner/{short-title}.md` with: files modified, issue addressed, expected impact, open issues.
+Write to `.paddle-pilot/sessions/{api_name}/aligner/{short-title}.md` with: files modified, issue addressed, expected impact, open issues.
 
 ## Constraints
 

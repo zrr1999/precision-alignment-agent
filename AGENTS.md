@@ -1,29 +1,29 @@
-# Precision Alignment Agent
+# Paddle Pilot
 
 This prompt has **two distinct usage modes**:
 
-1. Using this project as a **tool** to perform precision alignment work.
+1. Using this project as a **tool** to perform Paddle development tasks (precision alignment, bug fixing, etc.).
 2. **Developing or evolving this project itself** (changing agents, skills, tools, workflows, etc.).
 
 The instructions below are split accordingly.
 
 ---
 
-## 1. Using this project as a precision alignment tool
+## 1. Using this project as a Paddle development tool
 
-When you are performing **precision alignment work**, you **must** follow these rules:
+When you are performing **Paddle development tasks** (precision alignment, bug fixing, etc.), you **must** follow these rules:
 
-1. **Do not modify agent definitions, skills, or project configuration during the precision alignment workflow.**
+1. **Do not modify agent definitions, skills, or project configuration during the task workflow.**
 
-   - If you need to update these, do it **only after** the current precision alignment task is fully completed, in a separate workflow.
+   - If you need to update these, do it **only after** the current task is fully completed, in a separate workflow.
 
-2. If you need reference information to guide the precision alignment process, you should:
-   - Read the relevant documents **before** starting the precision alignment task.
-   - During the precision alignment task itself, focus exclusively on the alignment work.
+2. If you need reference information to guide the process, you should:
+   - Read the relevant documents **before** starting the task.
+   - During the task itself, focus exclusively on the work.
 
 ---
 
-## 2. Developing the precision-alignment-agent project itself
+## 2. Developing the paddle-pilot project itself
 
 When you are **developing, refactoring, or extending this project** (for example, editing agents in `roles/`, skills, tools, or project configuration), the goal is to improve this repository as a tool.
 
@@ -36,7 +36,7 @@ In this mode:
 
 ## Architecture Overview
 
-The system uses a **flat orchestration** model: a single Main Agent (defined in `roles/precision-alignment.md`) directly coordinates all sub-agents.
+The system uses a **flat orchestration** model: a single Main Agent (Orchestrator) directly coordinates all sub-agents.
 
 ```
 Main Agent (Orchestrator)

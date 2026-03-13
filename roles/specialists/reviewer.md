@@ -11,8 +11,8 @@ model:
 
 skills:
   - paddle-pull-request
-  - paa-just-workflow
-  - paa-knowledge-curation
+  - just-workflow
+  - knowledge-curation
 
 capabilities:
   - read
@@ -51,18 +51,36 @@ Do **not** rely solely on previous reports. Run these checks yourself:
 
 ## PR Process
 
-1. **Pre-PR**: `git status` (clean); `git log --oneline -10` (check `[PAA]` commits)
-2. **Commit hygiene**: If >5 small commits, squash into 1-3 logical commits. Keep `[PAA]` prefix.
-3. **Branch**: Use `precision-alignment-agent/{api_name}`. If exists, use `-N` suffix.
-4. **Push**: `git push origin {branch}`. No force push unless confirmed.
-5. **Title**: `[PAA][{type}] {title}`. Types: `Precision Depth Alignment`, `Precision Functional Alignment`, `Precision Performance Alignment`.
-6. **Body** (Chinese): Sections: modifications, precision results (baseline/post-fix), CI/CE results, backward compatibility, unfinished work.
-7. **Create**: `gh pr create --title "..." --body "..." --base develop`
-8. **Post-PR**: Return PR URL.
+**You MUST follow the `paddle-pull-request` skill exactly when creating PRs.** The skill defines the Paddle official PR template, title conventions, and `gh` command usage. Do NOT invent your own PR format.
+
+### Pre-PR Prep (before invoking the skill's flow)
+
+1. `git status` — ensure working tree is clean.
+2. `git log --oneline -10` — confirm `[PAA]` commits are present.
+3. **Commit hygiene**: If >5 small commits, squash into 1-3 logical commits. Keep `[PAA]` prefix.
+4. **Branch**: Use `paddle-pilot/{api_name}`. If exists, use `-N` suffix.
+
+### PR Creation (follow the skill)
+
+Invoke the `paddle-pull-request` skill and provide it with:
+
+- **PR Category**: Typically `Operator Mechanism` for precision/kernel fixes.
+- **PR Types**: Typically `Bug fixes` or `Improvements`.
+- **Description**: Include the following in the description body (use `####` sub-headings, never `###`):
+  - What was changed and why
+  - Precision results: baseline vs post-fix pass counts
+  - Any backward compatibility notes
+  - Unfinished work or known gaps (if partial success)
+- **是否引起精度变化**: Always specify — typically `是` for precision alignment work.
+- **Title**: Follow the skill's `[PR 大类] 简要说明` format, e.g. `[Precision] align paddle.xxx with PyTorch`.
+
+### Post-PR
+
+Return the PR URL to the orchestrator.
 
 ## Failure Report
 
-When no PR: write to `.paa/sessions/{api_name}/reviewer/failure_report.md` with: Summary, Initial State, Actions Taken, Final State, Root Cause, Recommendations.
+When no PR: write to `.paddle-pilot/sessions/{api_name}/reviewer/failure_report.md` with: Summary, Initial State, Actions Taken, Final State, Root Cause, Recommendations.
 
 ## Constraints
 

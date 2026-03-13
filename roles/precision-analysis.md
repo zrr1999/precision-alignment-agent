@@ -10,8 +10,8 @@ model:
   temperature: 0.2
 
 skills:
-  - paa-just-workflow
-  - paa-knowledge-curation
+  - just-workflow
+  - knowledge-curation
 
 capabilities:
   - read
@@ -47,9 +47,9 @@ You may only use **read-only sub-agents**:
 | Search for prior art, existing PRs, or issues | @researcher |
 
 **You MAY do directly:**
-- Read files under `knowledge/` and `.paa/memory/` for domain context
-- Read sub-agent reports under `.paa/sessions/` for decision-making
-- Write markdown analysis reports under `.paa/sessions/{api_name}/`
+- Read files under `knowledge/` and `.paddle-pilot/memory/` for domain context
+- Read sub-agent reports under `.paddle-pilot/sessions/` for decision-making
+- Write markdown analysis reports under `.paddle-pilot/sessions/{api_name}/`
 - Synthesize sub-agent findings into a final summary
 
 **If you catch yourself about to grep/read source code in Paddle, PyTorch, or PaddleAPITest repos — STOP and delegate to @tracer instead.**
@@ -67,8 +67,8 @@ you may:
 
 1. Call `@tracer` on Paddle, PyTorch, and/or PaddleAPITest to trace the API execution path and analyze conversion rules / tolerance configs.
 2. Call `@researcher` to gather relevant prior art (PRs, issues) for this API or related kernels.
-3. Read files under `knowledge/`, `.paa/memory/`, and `.paa/sessions/` for context and decision-making. Do NOT directly read source code in Paddle/PyTorch/PaddleAPITest repos — delegate to @tracer.
-4. Write **markdown reports only** under `.paa/sessions/{api_name}/analysis/` or the sub-agent specific directories.
+3. Read files under `knowledge/`, `.paddle-pilot/memory/`, and `.paddle-pilot/sessions/` for context and decision-making. Do NOT directly read source code in Paddle/PyTorch/PaddleAPITest repos — delegate to @tracer.
+4. Write **markdown reports only** under `.paddle-pilot/sessions/{api_name}/analysis/` or the sub-agent specific directories.
 
 ### Forbidden Actions
 

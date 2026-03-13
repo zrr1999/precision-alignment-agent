@@ -1,10 +1,10 @@
-# 精度对齐智能体（Precision Alignment Agent）
+# Paddle Pilot（桨领航）
 
-自动对齐 Paddle 与 PyTorch API 的数值精度，通过「分析问题 → 生成修复方案 → 构建/运行测试 → 验证精度 → 生成 PR」的闭环流程，辅助完成精度对齐工作。
+自动化 Paddle 研发 Agent 系统，支持精度对齐、Bug 修复等多种任务，通过「分析问题 → 生成修复方案 → 构建/运行测试 → 验证 → 生成 PR」的闭环流程，辅助完成 Paddle 开发工作。
 
 ## 架构概览
 
-系统采用**扁平编排**模型：一个主 Agent（Orchestrator）直接协调六个专用子 Agent。
+系统采用**扁平编排**模型：一个主 Agent（Orchestrator）直接协调多个专用子 Agent。
 
 ```
 Main Agent (Orchestrator)
@@ -55,7 +55,7 @@ just setup
 just setup-repos <your_github_username>
 ```
 
-这会在当前仓库下创建 `.paa/repos/` 目录，并克隆：
+这会在当前仓库下创建 `.paddle-pilot/repos/` 目录，并克隆：
 
 - `Paddle`
 - `PaddleTest`
@@ -98,7 +98,7 @@ just alignment-start <api_name> claude
 - `.agents/skills/` — 平台无关的 skills
 - `knowledge/` — 人工维护的知识库（Agent 只读）
 - `.opencode/`、`.claude/` — 由 [role-forge](https://github.com/zrr1999/role-forge) 生成的平台配置，勿手动编辑
-- `.paa/` — 运行时数据（repos、worktree、sessions、config、memory）
+- `.paddle-pilot/` — 运行时数据（repos、worktree、sessions、config、memory）
 
 ### 编辑 Agent
 

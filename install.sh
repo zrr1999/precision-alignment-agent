@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Precision Alignment Agent (PAA) - One-click installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/zrr1999/precision-alignment-agent/main/install.sh | bash
+# Paddle Pilot - One-click installer
+# Usage: curl -fsSL https://raw.githubusercontent.com/zrr1999/paddle-pilot/main/install.sh | bash
 #
 # Options (via environment variables):
-#   PAA_DIR       - Installation directory (default: ./precision-alignment-agent)
-#   PAA_BRANCH    - Git branch to clone (default: main)
+#   PADDLE_PILOT_DIR       - Installation directory (default: ./paddle-pilot)
+#   PADDLE_PILOT_BRANCH    - Git branch to clone (default: main)
 
 set -euo pipefail
 
@@ -25,17 +25,17 @@ error()   { printf "${RED}✘${RESET} %s\n" "$*" >&2; }
 step()    { printf "\n${BOLD}${CYAN}── %s ──${RESET}\n" "$*"; }
 
 # ─── Config ──────────────────────────────────────────────────────────────────
-PAA_DIR="${PAA_DIR:-precision-alignment-agent}"
-PAA_BRANCH="${PAA_BRANCH:-main}"
-PAA_REPO="https://github.com/zrr1999/precision-alignment-agent.git"
+PADDLE_PILOT_DIR="${PADDLE_PILOT_DIR:-paddle-pilot}"
+PADDLE_PILOT_BRANCH="${PADDLE_PILOT_BRANCH:-main}"
+PADDLE_PILOT_REPO="https://github.com/zrr1999/paddle-pilot.git"
 
 # ─── Banner ──────────────────────────────────────────────────────────────────
 printf "${BOLD}${CYAN}"
 cat << 'BANNER'
 
   ╔═══════════════════════════════════════════════════╗
-  ║    Precision Alignment Agent (PAA) Installer      ║
-  ║    Auto-align Paddle ↔ PyTorch API precision      ║
+  ║         Paddle Pilot Installer                     ║
+  ║    Auto-align Paddle ↔ PyTorch API precision       ║
   ╚═══════════════════════════════════════════════════╝
 
 BANNER
@@ -90,16 +90,16 @@ else
 fi
 
 # ─── Clone the project ──────────────────────────────────────────────────────
-step "Cloning precision-alignment-agent"
+step "Cloning paddle-pilot"
 
-if [ -d "$PAA_DIR/.git" ]; then
-    info "Directory $PAA_DIR already exists, pulling latest changes..."
-    cd "$PAA_DIR"
-    git pull origin "$PAA_BRANCH" || warn "Failed to pull, continuing with existing code"
+if [ -d "$PADDLE_PILOT_DIR/.git" ]; then
+    info "Directory $PADDLE_PILOT_DIR already exists, pulling latest changes..."
+    cd "$PADDLE_PILOT_DIR"
+    git pull origin "$PADDLE_PILOT_BRANCH" || warn "Failed to pull, continuing with existing code"
 else
-    info "Cloning from $PAA_REPO (branch: $PAA_BRANCH)..."
-    git clone --branch "$PAA_BRANCH" "$PAA_REPO" "$PAA_DIR"
-    cd "$PAA_DIR"
+    info "Cloning from $PADDLE_PILOT_REPO (branch: $PADDLE_PILOT_BRANCH)..."
+    git clone --branch "$PADDLE_PILOT_BRANCH" "$PADDLE_PILOT_REPO" "$PADDLE_PILOT_DIR"
+    cd "$PADDLE_PILOT_DIR"
 fi
 success "Project cloned to $(pwd)"
 
@@ -131,9 +131,9 @@ DONE
 printf "${RESET}\n"
 
 printf "${BOLD}Next steps:${RESET}\n"
-printf "  ${CYAN}1.${RESET} cd %s\n" "$PAA_DIR"
+printf "  ${CYAN}1.${RESET} cd %s\n" "$PADDLE_PILOT_DIR"
 printf "  ${CYAN}2.${RESET} gh auth login                             ${DIM}# Authenticate GitHub CLI${RESET}\n"
 printf "  ${CYAN}3.${RESET} just alignment-start <api_name>           ${DIM}# Start precision alignment${RESET}\n"
 printf "\n"
-printf "${DIM}For more info: https://github.com/zrr1999/precision-alignment-agent${RESET}\n"
+printf "${DIM}For more info: https://github.com/zrr1999/paddle-pilot${RESET}\n"
 printf "\n"

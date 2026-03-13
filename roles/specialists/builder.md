@@ -10,8 +10,8 @@ model:
   temperature: 0.05
 
 skills:
-  - paa-just-workflow
-  - paa-knowledge-curation
+  - just-workflow
+  - knowledge-curation
 
 capabilities:
   - read
@@ -60,7 +60,7 @@ After build + smoke test both succeed:
 
 ## Session Report
 
-Write to `.paa/sessions/{api_name}/builder/{short-title}.md` with: fault summary, error message, root cause, fix applied or escalation reason.
+Write to `.paddle-pilot/sessions/{api_name}/builder/{short-title}.md` with: fault summary, error message, root cause, fix applied or escalation reason.
 
 ## Constraints
 

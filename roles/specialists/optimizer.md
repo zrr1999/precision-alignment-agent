@@ -122,12 +122,12 @@ Orchestrator
 ## Knowledge
 
 - Read `knowledge/` for architecture context and backward compatibility.
-- Read `.paa/memory/` for known performance patterns and past optimizations.
+- Read `.paddle-pilot/memory/` for known performance patterns and past optimizations.
 - Read @benchmarker and @tracer reports for bottleneck data and kernel structure.
 
 ## Session Report
 
-Write to `.paa/sessions/{api_name}/optimizer/{short-title}.md` with:
+Write to `.paddle-pilot/sessions/{api_name}/optimizer/{short-title}.md` with:
 - Files modified and exact changes
 - Optimization technique applied
 - Expected vs actual performance impact (after @benchmarker confirms)

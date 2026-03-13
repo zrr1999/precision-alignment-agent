@@ -10,7 +10,7 @@ model:
   temperature: 0.1
 
 skills:
-  - paa-knowledge-curation
+  - knowledge-curation
 
 capabilities:
   - read
@@ -67,8 +67,8 @@ Use web search to catch PRs that `gh_grep` missed:
 
 Before writing results, check for prior reports that may save work:
 
-- `.paa/memory/` — persistent knowledge base from previous sessions
-- `.paa/sessions/` — reports from other API alignment sessions (patterns may transfer)
+- `.paddle-pilot/memory/` — persistent knowledge base from previous sessions
+- `.paddle-pilot/sessions/` — reports from other API alignment sessions (patterns may transfer)
 
 If relevant prior art exists, reference it and build on it rather than duplicating.
 
@@ -137,22 +137,22 @@ Chronological list of relevant PRs with dates, showing the development sequence.
 
 ## Knowledge Integration
 
-Use the `paa-knowledge-curation` skill for reading from `.paa/memory/`:
+Use the `knowledge-curation` skill for reading from `.paddle-pilot/memory/`:
 
-- Check `.paa/memory/common-patterns.md` for already-documented fix patterns
-- Check `.paa/memory/` for any API-specific notes
+- Check `.paddle-pilot/memory/common-patterns.md` for already-documented fix patterns
+- Check `.paddle-pilot/memory/` for any API-specific notes
 - If your findings add new patterns not yet in memory, note them in your Recommendations section for the Orchestrator to persist later
 
 ## Edge Cases
 
-- **No relevant PRs found**: State this clearly. Shift focus to: (1) related APIs that share the same kernel, (2) general precision alignment patterns from `.paa/memory/`, (3) recommend the Tracer trace as the primary source for fix strategy.
+- **No relevant PRs found**: State this clearly. Shift focus to: (1) related APIs that share the same kernel, (2) general precision alignment patterns from `.paddle-pilot/memory/`, (3) recommend the Tracer trace as the primary source for fix strategy.
 - **API too new / no prior art**: Note the API's introduction date if findable. Recommend starting from PyTorch source comparison rather than prior PRs.
 - **Many PRs found (>10)**: Prioritize by relevance score. Deep-dive only the top 3-5. Summarize the rest in the PR list table.
 - **Open PRs that are directly applicable**: Flag these prominently — the Orchestrator may choose to cherry-pick rather than re-implement.
 
 ## Session Report
 
-Write to `.paa/sessions/{api_name}/researcher/prior-art.md`.
+Write to `.paddle-pilot/sessions/{api_name}/researcher/prior-art.md`.
 
 ## Constraints
 

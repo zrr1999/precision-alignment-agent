@@ -1,8 +1,9 @@
 ---
 name: validator
 description: >
-  Precision Validator. Runs PaddleAPITest precision validation,
-  analyzes results, reports pass/fail patterns.
+  Validator. Runs precision validation (PaddleAPITest) and bug-fix
+  validation (tensor-spec paddleonly + accuracy). Analyzes results,
+  reports pass/fail patterns.
 role: subagent
 
 model:
@@ -10,8 +11,8 @@ model:
   temperature: 0.05
 
 skills:
-  - paa-just-workflow
-  - paa-knowledge-curation
+  - just-workflow
+  - knowledge-curation
 
 capabilities:
   - read
@@ -35,7 +36,7 @@ Run PaddleAPITest precision validation and produce structured pass/fail reports.
 
 ## Running Tests
 
-`just agentic-run-precision-test ${VENV_PATH} ${PADDLEAPITEST_PATH} {config_file} PAA_test_log/{api_name}/...`
+`just agentic-run-precision-test ${VENV_PATH} ${PADDLEAPITEST_PATH} {config_file} paddle_pilot_test_log/{api_name}/...`
 
 Do NOT add `FLAGS_use_accuracy_compatible_kernel` - the Justfile handles it.
 
@@ -64,10 +65,53 @@ Report to caller with:
 
 ## Session Report
 
-Write to `.paa/sessions/{api_name}/validator/{baseline|postfix|final}.md`.
+Write to `.paddle-pilot/sessions/{api_name}/validator/{baseline|postfix|final}.md`.
 
-If rejecting (missing paths, unusable environment), write rejection report to `.paa/sessions/{api_name}/validator/rejection.md`.
+If rejecting (missing paths, unusable environment), write rejection report to `.paddle-pilot/sessions/{api_name}/validator/rejection.md`.
+
+## tensor-spec Validation (for bug-fix workflow)
+
+When invoked from the `@bug-fix` orchestrator, use tensor-spec instead of PaddleAPITest.
+
+### Two-Stage Validation
+
+**Stage A — paddleonly (crash detection):**
+
+`just agentic-run-tensorspec-paddleonly $TENSOR_SPEC_PATH $VENV_PATH $CASE_FILE $LOG_DIR`
+
+- Runs each case on Paddle only (no PyTorch comparison)
+- Detects: crash, segfault, CUDA error, OOM
+- **Must pass before Stage B**
+- Parse results from JSON Lines log: look for `paddle_error`, `cuda_error`, `oom` statuses
+
+**Stage B — accuracy (behavioral correctness):**
+
+`just agentic-run-tensorspec-accuracy $TENSOR_SPEC_PATH $VENV_PATH $CASE_FILE $LOG_DIR`
+
+- Compares Paddle output against PyTorch output
+- Detects: accuracy differences, shape mismatches, dtype mismatches
+- Parse results from JSON Lines log: look for `accuracy_error` status
+
+### tensor-spec Result Statuses
+
+| Status | Meaning |
+|--------|---------|
+| `pass` | Test case passed |
+| `accuracy_error` | Output differs between backends |
+| `paddle_error` | Paddle raised an exception |
+| `torch_error` | PyTorch raised an exception (not a Paddle bug) |
+| `cuda_error` | CUDA runtime error |
+| `oom` | Out of memory |
+| `error` | Other error |
+
+### Report Format (tensor-spec)
+
+Same structure as PaddleAPITest reports, but include:
+- **Stage A results**: total, passed, crashed (paddle_error + cuda_error + oom)
+- **Stage B results**: total, passed, accuracy_error
+- **Crash patterns**: which shapes/dtypes/operations crash
+- **Recommendation**: focused on crash fixes first, accuracy second
 
 ## Constraints
 
-- Bash: permitted commands only. PaddleAPITest only. No spawning agents. Same config for before/after comparison.
+- Bash: permitted commands only. PaddleAPITest or tensor-spec depending on workflow. No spawning agents. Same config for before/after comparison.
