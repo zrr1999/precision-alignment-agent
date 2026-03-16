@@ -2,6 +2,10 @@
 default:
     @just --list
 
+# ============================================================================
+# Setup & Configuration
+# ============================================================================
+
 # 安装所有依赖
 setup:
     #!/usr/bin/env bash
@@ -163,171 +167,43 @@ setup-repos username="":
 
     echo "✔ Repos ready at .paddle-pilot/repos/"
 
-# TODO: worktree need better method. loop?
+# 启动 paddle-agent
 start branch_name tool="opencode" additional_prompt="":
     #!/usr/bin/env bash
     set -euo pipefail
+    PAA_ROOT=$(pwd)
 
-    PADDLE_PILOT_ROOT=$(pwd)
+    _paths="$(just _resolve-paths)" || { echo "❌ Path resolution failed" >&2; exit 1; }
+    eval "$_paths"
 
-    PADDLE_PATH="${PADDLE_PATH:=.paddle-pilot/repos/Paddle}"
-    PYTORCH_PATH="${PYTORCH_PATH:=.paddle-pilot/repos/pytorch}"
-    PADDLETEST_PATH="${PADDLETEST_PATH:=.paddle-pilot/repos/PaddleTest}"
-    PADDLEAPITEST_PATH="${PADDLEAPITEST_PATH:=.paddle-pilot/repos/PaddleAPITest}"
+    _wt="$(just _setup-worktree "$PAA_ROOT" "$PADDLE_PATH" "{{ branch_name }}")" || { echo "❌ Worktree setup failed" >&2; exit 1; }
+    eval "$_wt"
 
-    PADDLE_PATH="$(cd "$PADDLE_PATH" && pwd)"
-    PYTORCH_PATH="$(cd "$PYTORCH_PATH" && pwd)"
-    PADDLETEST_PATH="$(cd "$PADDLETEST_PATH" && pwd)"
-    PADDLEAPITEST_PATH="$(cd "$PADDLEAPITEST_PATH" && pwd)"
+    just agentic-venv-setup "$PADDLE_PATH"
+    just agentic-paddle-build-and-install "$PADDLE_PATH"
 
-    echo "PYTORCH_PATH: $PYTORCH_PATH"
-    echo "PADDLETEST_PATH: $PADDLETEST_PATH"
-    echo "PADDLEAPITEST_PATH: $PADDLEAPITEST_PATH"
-
-    echo "Setting up worktree"
-    mkdir -p .paddle-pilot/worktree
-    cd $PADDLE_PATH
-    git switch -c paddle-pilot/develop 2>/dev/null || git switch paddle-pilot/develop
-    git pull upstream develop
-    if [ -d "$PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ branch_name }}" ]; then
-        cd "$PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ branch_name }}"
-    else
-        git worktree add $PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ branch_name }} -b paddle-pilot/{{ branch_name }}
-    fi
-
-    PADDLE_PATH=$PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ branch_name }}
-    VENV_PATH=$PADDLE_PATH/.venv
-    echo "PADDLE_PATH: $PADDLE_PATH"
-
-    cd $PADDLE_PATH
-    just agentic-venv-setup $PADDLE_PATH
-    just agentic-paddle-build-and-install $PADDLE_PATH
-
-    echo "Successfully setup worktree and created venv"
-
-    cd $PADDLE_PILOT_ROOT
-
+    cd "$PAA_ROOT"
     AGENT="paddle-agent"
     PROMPT="[paddle_path=$PADDLE_PATH, \
             pytorch_path=$PYTORCH_PATH, \
             paddletest_path=$PADDLETEST_PATH, \
             paddleapitest_path=$PADDLEAPITEST_PATH, \
+            tensor_spec_path=$TENSOR_SPEC_PATH, \
             venv_path=$VENV_PATH] \
+            $WORKTREE_CONTEXT \
             {{ additional_prompt }}"
 
     just _launch-agent "{{ tool }}" "$AGENT" "$PROMPT"
 
+# ============================================================================
+# Internal Recipes (prefixed with _)
+# ============================================================================
 
-analysis-start api_name tool="opencode" additional_prompt="":
+# Resolve all repo paths to absolute paths. Outputs eval-able KEY=VALUE lines to stdout.
+# Informational messages go to stderr.
+_resolve-paths:
     #!/usr/bin/env bash
     set -euo pipefail
-
-    PADDLE_PILOT_ROOT=$(pwd)
-
-    PADDLE_PATH="${PADDLE_PATH:=.paddle-pilot/repos/Paddle}"
-    PYTORCH_PATH="${PYTORCH_PATH:=.paddle-pilot/repos/pytorch}"
-    PADDLETEST_PATH="${PADDLETEST_PATH:=.paddle-pilot/repos/PaddleTest}"
-    PADDLEAPITEST_PATH="${PADDLEAPITEST_PATH:=.paddle-pilot/repos/PaddleAPITest}"
-
-    PADDLE_PATH="$(cd "$PADDLE_PATH" && pwd)"
-    PYTORCH_PATH="$(cd "$PYTORCH_PATH" && pwd)"
-    PADDLETEST_PATH="$(cd "$PADDLETEST_PATH" && pwd)"
-    PADDLEAPITEST_PATH="$(cd "$PADDLEAPITEST_PATH" && pwd)"
-
-    echo "PYTORCH_PATH: $PYTORCH_PATH"
-    echo "PADDLETEST_PATH: $PADDLETEST_PATH"
-    echo "PADDLEAPITEST_PATH: $PADDLEAPITEST_PATH"
-
-    echo "Setting up worktree"
-    mkdir -p .paddle-pilot/worktree
-    cd $PADDLE_PATH
-    git switch -c paddle-pilot/develop 2>/dev/null || git switch paddle-pilot/develop
-    git pull upstream develop
-    if [ -d "$PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ api_name }}" ]; then
-        cd "$PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ api_name }}"
-    else
-        git worktree add $PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ api_name }} -b paddle-pilot/{{ api_name }}
-    fi
-
-    PADDLE_PATH=$PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ api_name }}
-    VENV_PATH=$PADDLE_PATH/.venv
-    echo "PADDLE_PATH: $PADDLE_PATH"
-
-    cd $PADDLE_PILOT_ROOT
-
-    AGENT="precision-analysis"
-    PROMPT="Start EXPLORE-ONLY (read-only) precision analysis for {{ api_name }}. \
-        This session is for research and code tracing only. \
-        Additional user prompt: {{ additional_prompt }}. \
-        Inputs: paddle_path=$PADDLE_PATH, \
-        pytorch_path=$PYTORCH_PATH, \
-        paddletest_path=$PADDLETEST_PATH, \
-        paddleapitest_path=$PADDLEAPITEST_PATH, \
-        venv_path=$VENV_PATH"
-
-    just _launch-agent "{{ tool }}" "$AGENT" "$PROMPT"
-
-# 快速启动精度对齐流程
-alignment-start api_name tool="opencode" additional_prompt="":
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    PADDLE_PILOT_ROOT=$(pwd)
-
-    PADDLE_PATH="${PADDLE_PATH:=.paddle-pilot/repos/Paddle}"
-    PYTORCH_PATH="${PYTORCH_PATH:=.paddle-pilot/repos/pytorch}"
-    PADDLETEST_PATH="${PADDLETEST_PATH:=.paddle-pilot/repos/PaddleTest}"
-    PADDLEAPITEST_PATH="${PADDLEAPITEST_PATH:=.paddle-pilot/repos/PaddleAPITest}"
-
-    PADDLE_PATH="$(cd "$PADDLE_PATH" && pwd)"
-    PYTORCH_PATH="$(cd "$PYTORCH_PATH" && pwd)"
-    PADDLETEST_PATH="$(cd "$PADDLETEST_PATH" && pwd)"
-    PADDLEAPITEST_PATH="$(cd "$PADDLEAPITEST_PATH" && pwd)"
-
-    echo "PYTORCH_PATH: $PYTORCH_PATH"
-    echo "PADDLETEST_PATH: $PADDLETEST_PATH"
-    echo "PADDLEAPITEST_PATH: $PADDLEAPITEST_PATH"
-
-    echo "Setting up worktree"
-    mkdir -p .paddle-pilot/worktree
-    cd $PADDLE_PATH
-    git switch -c paddle-pilot/develop 2>/dev/null || git switch paddle-pilot/develop
-    git pull upstream develop
-    if [ -d "$PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ api_name }}" ]; then
-        cd "$PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ api_name }}"
-    else
-        git worktree add $PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ api_name }} -b paddle-pilot/{{ api_name }}
-    fi
-
-    PADDLE_PATH=$PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ api_name }}
-    VENV_PATH=$PADDLE_PATH/.venv
-    echo "PADDLE_PATH: $PADDLE_PATH"
-
-    cd $PADDLE_PATH
-    just agentic-venv-setup $PADDLE_PATH
-    just agentic-paddle-build-and-install $PADDLE_PATH
-
-    echo "Successfully setup worktree and created venv"
-
-    cd $PADDLE_PILOT_ROOT
-
-    AGENT="precision-alignment"
-    PROMPT="Start precision alignment workflow for {{ api_name }} \
-        (additional prompt: {{ additional_prompt }}), with inputs: \
-        paddle_path=$PADDLE_PATH, \
-        pytorch_path=$PYTORCH_PATH, \
-        paddletest_path=$PADDLETEST_PATH, \
-        paddleapitest_path=$PADDLEAPITEST_PATH, \
-        venv_path=$VENV_PATH"
-
-    just _launch-agent "{{ tool }}" "$AGENT" "$PROMPT"
-
-# 快速启动 Bug 修复流程
-bugfix-start api_name bug_type="general" tool="opencode" additional_prompt="":
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    PADDLE_PILOT_ROOT=$(pwd)
 
     PADDLE_PATH="${PADDLE_PATH:=.paddle-pilot/repos/Paddle}"
     PYTORCH_PATH="${PYTORCH_PATH:=.paddle-pilot/repos/pytorch}"
@@ -339,53 +215,94 @@ bugfix-start api_name bug_type="general" tool="opencode" additional_prompt="":
     PYTORCH_PATH="$(cd "$PYTORCH_PATH" && pwd)"
     PADDLETEST_PATH="$(cd "$PADDLETEST_PATH" && pwd)"
     PADDLEAPITEST_PATH="$(cd "$PADDLEAPITEST_PATH" && pwd)"
-    TENSOR_SPEC_PATH="$(cd "$TENSOR_SPEC_PATH" && pwd)"
+    TENSOR_SPEC_PATH="$(cd "$TENSOR_SPEC_PATH" 2>/dev/null && pwd || echo "$TENSOR_SPEC_PATH")"
 
-    echo "PADDLE_PATH: $PADDLE_PATH"
-    echo "PYTORCH_PATH: $PYTORCH_PATH"
-    echo "PADDLETEST_PATH: $PADDLETEST_PATH"
-    echo "PADDLEAPITEST_PATH: $PADDLEAPITEST_PATH"
-    echo "TENSOR_SPEC_PATH: $TENSOR_SPEC_PATH"
+    echo "  PADDLE_PATH:       $PADDLE_PATH" >&2
+    echo "  PYTORCH_PATH:      $PYTORCH_PATH" >&2
+    echo "  PADDLETEST_PATH:   $PADDLETEST_PATH" >&2
+    echo "  PADDLEAPITEST_PATH:$PADDLEAPITEST_PATH" >&2
+    echo "  TENSOR_SPEC_PATH:  $TENSOR_SPEC_PATH" >&2
 
-    echo "Setting up worktree"
-    mkdir -p .paddle-pilot/worktree
-    cd $PADDLE_PATH
+    printf 'PADDLE_PATH=%q\n' "$PADDLE_PATH"
+    printf 'PYTORCH_PATH=%q\n' "$PYTORCH_PATH"
+    printf 'PADDLETEST_PATH=%q\n' "$PADDLETEST_PATH"
+    printf 'PADDLEAPITEST_PATH=%q\n' "$PADDLEAPITEST_PATH"
+    printf 'TENSOR_SPEC_PATH=%q\n' "$TENSOR_SPEC_PATH"
+
+# Setup worktree with interactive reuse prompts. Outputs eval-able KEY=VALUE lines to stdout.
+# If worktree already exists, asks user whether to create a fresh branch (default: No).
+#   - No:  reuse existing worktree, WORKTREE_CONTEXT contains resume notice for agent.
+#   - Yes: create fresh branch (clean git tracking), optionally keep build/ and .venv/.
+_setup-worktree PAA_ROOT PADDLE_SRC branch_name:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    WORKTREE_DIR="{{ PAA_ROOT }}/.paddle-pilot/worktree/Paddle_{{ branch_name }}"
+    BRANCH_NAME="paddle-pilot/{{ branch_name }}"
+    WORKTREE_CONTEXT=""
+
+    mkdir -p "{{ PAA_ROOT }}/.paddle-pilot/worktree"
+
+    # Sync base branch
+    cd "{{ PADDLE_SRC }}"
     git switch -c paddle-pilot/develop 2>/dev/null || git switch paddle-pilot/develop
-    git pull upstream develop
-    if [ -d "$PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ api_name }}" ]; then
-        cd "$PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ api_name }}"
+    echo "▶ Syncing upstream develop..." >&2
+    git pull upstream develop >&2
+
+    if [ -d "$WORKTREE_DIR" ]; then
+        echo "" >&2
+        echo "⚠  Worktree already exists: $WORKTREE_DIR" >&2
+        cd "$WORKTREE_DIR"
+        CURRENT_BRANCH=$(git branch --show-current)
+        LAST_COMMIT=$(git log --oneline -1)
+        echo "   Branch:      $CURRENT_BRANCH" >&2
+        echo "   Last commit:  $LAST_COMMIT" >&2
+        DIRTY=""
+        if [ -n "$(git status --porcelain)" ]; then
+            DIRTY=" (has uncommitted changes)"
+            echo "   Status:      uncommitted changes present" >&2
+        fi
+        echo "" >&2
+
+        read -rp "Create fresh branch? (overwrites existing) [y/N] " fresh < /dev/tty
+        if [[ "${fresh:-N}" =~ ^[Yy]$ ]]; then
+            # --- Fresh branch ---
+            read -rp "Keep existing build directory? [Y/n] " keep_build < /dev/tty
+
+            BUILD_BACKUP=""
+            if [[ "${keep_build:-Y}" =~ ^[Yy]$ ]]; then
+                BUILD_BACKUP=$(mktemp -d)
+                echo "   Saving build & venv..." >&2
+                [ -d "$WORKTREE_DIR/build" ] && mv "$WORKTREE_DIR/build" "$BUILD_BACKUP/build"
+                [ -d "$WORKTREE_DIR/.venv" ] && mv "$WORKTREE_DIR/.venv" "$BUILD_BACKUP/.venv"
+            fi
+
+            echo "   Removing old worktree..." >&2
+            cd "{{ PADDLE_SRC }}"
+            git worktree remove "$WORKTREE_DIR" --force 2>/dev/null || rm -rf "$WORKTREE_DIR"
+            git branch -D "$BRANCH_NAME" 2>/dev/null || true
+            git worktree add "$WORKTREE_DIR" -b "$BRANCH_NAME" >&2
+
+            if [ -n "$BUILD_BACKUP" ]; then
+                [ -d "$BUILD_BACKUP/build" ] && mv "$BUILD_BACKUP/build" "$WORKTREE_DIR/build"
+                [ -d "$BUILD_BACKUP/.venv" ] && mv "$BUILD_BACKUP/.venv" "$WORKTREE_DIR/.venv"
+                rm -rf "$BUILD_BACKUP"
+                echo "   ✔ Restored build & venv" >&2
+            fi
+            echo "   ✔ Fresh worktree created" >&2
+        else
+            # --- Reuse existing worktree ---
+            WORKTREE_CONTEXT="IMPORTANT: This is a RESUMED session on existing branch '$CURRENT_BRANCH' (last commit: $LAST_COMMIT)${DIRTY}. Check git log and existing work before making changes."
+            echo "   ✔ Reusing existing worktree" >&2
+        fi
     else
-        git worktree add $PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ api_name }} -b paddle-pilot/{{ api_name }}
+        git worktree add "$WORKTREE_DIR" -b "$BRANCH_NAME" >&2
+        echo "   ✔ New worktree created: $WORKTREE_DIR" >&2
     fi
 
-    PADDLE_PATH=$PADDLE_PILOT_ROOT/.paddle-pilot/worktree/Paddle_{{ api_name }}
-    VENV_PATH=$PADDLE_PATH/.venv
-    echo "PADDLE_PATH: $PADDLE_PATH"
-
-    cd $PADDLE_PATH
-    just agentic-venv-setup $PADDLE_PATH
-    just agentic-paddle-build-and-install $PADDLE_PATH
-
-    echo "Successfully setup worktree and created venv"
-
-    cd $PADDLE_PILOT_ROOT
-
-    AGENT="bug-fix"
-    PROMPT="Start bug-fix workflow for {{ api_name }}. \
-        Bug type: {{ bug_type }}. \
-        Additional context: {{ additional_prompt }}. \
-        Inputs: paddle_path=$PADDLE_PATH, \
-        pytorch_path=$PYTORCH_PATH, \
-        paddletest_path=$PADDLETEST_PATH, \
-        paddleapitest_path=$PADDLEAPITEST_PATH, \
-        tensor_spec_path=$TENSOR_SPEC_PATH, \
-        venv_path=$VENV_PATH"
-
-    just _launch-agent "{{ tool }}" "$AGENT" "$PROMPT"
-
-# ============================================================================
-# Internal Recipes (prefixed with _)
-# ============================================================================
+    printf 'PADDLE_PATH=%q\n' "$WORKTREE_DIR"
+    printf 'VENV_PATH=%q\n' "$WORKTREE_DIR/.venv"
+    printf 'WORKTREE_CONTEXT=%q\n' "$WORKTREE_CONTEXT"
 
 # 根据 tool 类型启动 agent（支持 opencode / claude / ducc）
 _launch-agent tool agent prompt:
@@ -410,21 +327,10 @@ _launch-agent tool agent prompt:
 # Agentic Commands - For Agent Use Only
 #
 # Convention: Only commands prefixed with "agentic-" can be used by agents.
-# All commands require environment variables to be set.
+# All commands require explicit path parameters.
 # ============================================================================
 
-# Link external repos (Paddle, PaddleTest, PaddleAPITest, PyTorch) into .paddle-pilot/worktree/ for agent use. TODO: implementation pending.
-agentic-repos-setup PADDLE_PATH PADDLETEST_PATH PADDLEAPITEST_PATH PYTORCH_PATH:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    echo "TODO"
-    # echo "Setting up external repos..."
-    # mkdir -p .paddle-pilot/worktree
-    # ln -sf "{{ PADDLE_PATH }}" .paddle-pilot/worktree/Paddle
-    # ln -sf "{{ PADDLETEST_PATH }}" .paddle-pilot/worktree/PaddleTest
-    # ln -sf "{{ PADDLEAPITEST_PATH }}" .paddle-pilot/worktree/PaddleAPITest
-    # ln -sf "{{ PYTORCH_PATH }}" .paddle-pilot/worktree/PyTorch
-    # echo "External repos setup complete: .paddle-pilot/worktree/Paddle, .paddle-pilot/worktree/PaddleTest, .paddle-pilot/worktree/PaddleAPITest, .paddle-pilot/worktree/PyTorch"
+# --- Build & Environment ---
 
 # Create or update relocatable venv with Paddle deps (torch, func_timeout, etc.) and Paddle python/requirements.txt.
 agentic-venv-setup PADDLE_PATH:
@@ -456,6 +362,8 @@ agentic-paddle-build-and-install PADDLE_PATH:
     uv pip install {{ PADDLE_PATH }}/build/python/dist/*.whl --no-deps --force-reinstall
     echo "Paddle build and install completed successfully."
 
+# --- Testing: Paddle Unit Tests & PaddleTest ---
+
 # Run Paddle internal unit test for a specific API
 agentic-run-paddle-unittest PADDLE_PATH TEST_FILE:
     #!/usr/bin/env bash
@@ -484,6 +392,8 @@ agentic-run-paddletest PADDLE_PATH PADDLETEST_PATH TEST_FILE:
     echo "Running PaddleTest(FLAGS_use_accuracy_compatible_kernel=1) for {{ TEST_FILE }}..."
     FLAGS_use_accuracy_compatible_kernel=1 \
     uv run --no-project -p "$VENV_PATH" python -m pytest "{{ TEST_FILE }}" -v
+
+# --- Testing: PaddleAPITest Precision ---
 
 # Extract precision test configs for an API from PaddleAPITest paa.txt into .paddle-pilot/config/{API_NAME}.txt for Validator use.
 agentic-get-precision-test-configs API_NAME PADDLEAPITEST_PATH:
@@ -540,6 +450,8 @@ agentic-run-precision-cpu-test PADDLE_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DI
     echo "---"
     echo "Log directory: paddle_pilot_test_log/{{ LOG_DIR }}"
     echo "Full path: {{ PADDLEAPITEST_PATH }}/paddle_pilot_test_log/{{ LOG_DIR }}"
+
+# --- Testing: tensor-spec (Bug-Fix Workflow) ---
 
 # Run tensor-spec paddleonly test (single backend, crash detection). For bug-fix validation Stage A.
 agentic-run-tensorspec-paddleonly TENSOR_SPEC_PATH VENV_PATH CASE_FILE LOG_DIR:
