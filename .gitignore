@@ -5,4 +5,5 @@
 .prose/
 .paddle-pilot/
 .paddle-pilot-*/
-.agents/roles
+.agents
+.github/agents/

@@ -38,7 +38,7 @@ Run PaddleAPITest precision validation and produce structured pass/fail reports.
 
 `just agentic-run-precision-test ${VENV_PATH} ${PADDLEAPITEST_PATH} {config_file} paddle_pilot_test_log/{api_name}/...`
 
-Do NOT add `FLAGS_use_accuracy_compatible_kernel` - the Justfile handles it.
+Do NOT add `FLAGS_use_accuracy_compatible_kernel` - the justfile handles it.
 
 ## Baseline & Validation
 

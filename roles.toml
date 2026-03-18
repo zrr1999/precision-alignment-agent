@@ -1,6 +1,3 @@
-[project]
-roles_dir = "roles"
-
 [targets.opencode]
 enabled = true
 output_dir = "."
@@ -24,3 +21,11 @@ coding = "sonnet"
 [targets.claude.capability_map]
 context7 = { context7 = true }
 gh-search = { gh_grep = true }
+
+[targets.copilot]
+enabled = true
+output_dir = "."
+
+[targets.copilot.model_map]
+reasoning = "GPT-5.4"
+coding = "GPT-5.4"

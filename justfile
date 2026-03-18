@@ -184,6 +184,47 @@ start branch_name tool="opencode" additional_prompt="":
 
     cd "$PAA_ROOT"
     AGENT="paddle-agent"
+    ADDITIONAL_PROMPT={{ quote(additional_prompt) }}
+    PROMPT="[paddle_path=$PADDLE_PATH, \
+            pytorch_path(v2.9.1)=$PYTORCH_PATH, \
+            paddletest_path=$PADDLETEST_PATH, \
+            paddleapitest_path=$PADDLEAPITEST_PATH, \
+            tensor_spec_path=$TENSOR_SPEC_PATH, \
+            venv_path=$VENV_PATH] \
+            $WORKTREE_CONTEXT \
+            $ADDITIONAL_PROMPT"
+
+    just _launch-agent "{{ tool }}" "$AGENT" "$PROMPT"
+
+# 复用现有任务分支/工作树，优先跳过已有的 build 和 venv
+resume branch_name tool="opencode" additional_prompt="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    PAA_ROOT=$(pwd)
+
+    _paths="$(just _resolve-paths)" || { echo "❌ Path resolution failed" >&2; exit 1; }
+    eval "$_paths"
+
+    _wt="$(just _resume-worktree "$PAA_ROOT" "$PADDLE_PATH" "{{ branch_name }}")" || { echo "❌ Worktree resume failed" >&2; exit 1; }
+    eval "$_wt"
+
+    if [ ! -d "$VENV_PATH" ]; then
+        echo "▶ .venv missing, recreating environment..." >&2
+        just agentic-venv-setup "$PADDLE_PATH"
+    else
+        echo "✔ Reusing existing venv: $VENV_PATH" >&2
+    fi
+
+    if compgen -G "$PADDLE_PATH/build/python/dist/*.whl" >/dev/null; then
+        echo "✔ Reusing existing build artifacts" >&2
+    else
+        echo "▶ Build artifacts missing, rebuilding Paddle..." >&2
+        just agentic-paddle-build-and-install "$PADDLE_PATH"
+    fi
+
+    cd "$PAA_ROOT"
+    AGENT="paddle-agent"
+    ADDITIONAL_PROMPT={{ quote(additional_prompt) }}
     PROMPT="[paddle_path=$PADDLE_PATH, \
             pytorch_path=$PYTORCH_PATH, \
             paddletest_path=$PADDLETEST_PATH, \
@@ -191,7 +232,7 @@ start branch_name tool="opencode" additional_prompt="":
             tensor_spec_path=$TENSOR_SPEC_PATH, \
             venv_path=$VENV_PATH] \
             $WORKTREE_CONTEXT \
-            {{ additional_prompt }}"
+            $ADDITIONAL_PROMPT"
 
     just _launch-agent "{{ tool }}" "$AGENT" "$PROMPT"
 
@@ -241,6 +282,10 @@ _setup-worktree PAA_ROOT PADDLE_SRC branch_name:
     BRANCH_NAME="paddle-pilot/{{ branch_name }}"
     WORKTREE_CONTEXT=""
 
+    branch_exists() {
+        git rev-parse --verify --quiet "$1" >/dev/null
+    }
+
     mkdir -p "{{ PAA_ROOT }}/.paddle-pilot/worktree"
 
     # Sync base branch
@@ -248,6 +293,8 @@ _setup-worktree PAA_ROOT PADDLE_SRC branch_name:
     git switch -c paddle-pilot/develop 2>/dev/null || git switch paddle-pilot/develop
     echo "▶ Syncing upstream develop..." >&2
     git pull upstream develop >&2
+    echo "▶ Pruning stale worktree metadata..." >&2
+    git worktree prune --verbose >&2 || true
 
     if [ -d "$WORKTREE_DIR" ]; then
         echo "" >&2
@@ -258,7 +305,8 @@ _setup-worktree PAA_ROOT PADDLE_SRC branch_name:
         echo "   Branch:      $CURRENT_BRANCH" >&2
         echo "   Last commit:  $LAST_COMMIT" >&2
         DIRTY=""
-        if [ -n "$(git status --porcelain)" ]; then
+        STATUS_OUTPUT="$(git status --porcelain --ignore-submodules=all 2>/dev/null || true)"
+        if [ -n "$STATUS_OUTPUT" ]; then
             DIRTY=" (has uncommitted changes)"
             echo "   Status:      uncommitted changes present" >&2
         fi
@@ -280,7 +328,13 @@ _setup-worktree PAA_ROOT PADDLE_SRC branch_name:
             echo "   Removing old worktree..." >&2
             cd "{{ PADDLE_SRC }}"
             git worktree remove "$WORKTREE_DIR" --force 2>/dev/null || rm -rf "$WORKTREE_DIR"
-            git branch -D "$BRANCH_NAME" 2>/dev/null || true
+            git worktree prune --verbose >&2 || true
+            if branch_exists "$BRANCH_NAME"; then
+                if ! git branch -D "$BRANCH_NAME" >&2; then
+                    echo "❌ Branch $BRANCH_NAME already exists and could not be deleted. It may still be checked out in another worktree." >&2
+                    exit 1
+                fi
+            fi
             git worktree add "$WORKTREE_DIR" -b "$BRANCH_NAME" >&2
 
             if [ -n "$BUILD_BACKUP" ]; then
@@ -292,12 +346,72 @@ _setup-worktree PAA_ROOT PADDLE_SRC branch_name:
             echo "   ✔ Fresh worktree created" >&2
         else
             # --- Reuse existing worktree ---
-            WORKTREE_CONTEXT="IMPORTANT: This is a RESUMED session on existing branch '$CURRENT_BRANCH' (last commit: $LAST_COMMIT)${DIRTY}. Check git log and existing work before making changes."
             echo "   ✔ Reusing existing worktree" >&2
+            read -rp "Pull latest from upstream develop? [y/N] " do_pull < /dev/tty
+            if [[ "${do_pull:-N}" =~ ^[Yy]$ ]]; then
+                echo "   ▶ Pulling upstream develop..." >&2
+                git pull upstream develop >&2 || echo "   ⚠ Pull failed, continuing with current state" >&2
+                LAST_COMMIT=$(git log --oneline -1)
+            fi
+            WORKTREE_CONTEXT="IMPORTANT: This is a RESUMED session on existing branch '$CURRENT_BRANCH' (last commit: $LAST_COMMIT)${DIRTY}. Check git log and existing work before making changes."
         fi
     else
-        git worktree add "$WORKTREE_DIR" -b "$BRANCH_NAME" >&2
-        echo "   ✔ New worktree created: $WORKTREE_DIR" >&2
+        if branch_exists "$BRANCH_NAME"; then
+            git worktree add "$WORKTREE_DIR" "$BRANCH_NAME" >&2
+            WORKTREE_CONTEXT="IMPORTANT: This is a RESUMED session on existing branch '$BRANCH_NAME' reattached to a recreated worktree. Check git log and existing work before making changes."
+            echo "   ✔ Reattached existing branch to new worktree: $WORKTREE_DIR" >&2
+        else
+            git worktree add "$WORKTREE_DIR" -b "$BRANCH_NAME" >&2
+            echo "   ✔ New worktree created: $WORKTREE_DIR" >&2
+        fi
+    fi
+
+    printf 'PADDLE_PATH=%q\n' "$WORKTREE_DIR"
+    printf 'VENV_PATH=%q\n' "$WORKTREE_DIR/.venv"
+    printf 'WORKTREE_CONTEXT=%q\n' "$WORKTREE_CONTEXT"
+
+_resume-worktree PAA_ROOT PADDLE_SRC branch_name:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    WORKTREE_DIR="{{ PAA_ROOT }}/.paddle-pilot/worktree/Paddle_{{ branch_name }}"
+    BRANCH_NAME="paddle-pilot/{{ branch_name }}"
+
+    branch_exists() {
+        git rev-parse --verify --quiet "$1" >/dev/null
+    }
+
+    mkdir -p "{{ PAA_ROOT }}/.paddle-pilot/worktree"
+
+    cd "{{ PADDLE_SRC }}"
+    git switch -c paddle-pilot/develop 2>/dev/null || git switch paddle-pilot/develop
+    echo "▶ Pruning stale worktree metadata..." >&2
+    git worktree prune --verbose >&2 || true
+
+    if [ -d "$WORKTREE_DIR" ]; then
+        cd "$WORKTREE_DIR"
+        CURRENT_BRANCH=$(git branch --show-current)
+        LAST_COMMIT=$(git log --oneline -1)
+        STATUS_OUTPUT="$(git status --porcelain --ignore-submodules=all 2>/dev/null || true)"
+        DIRTY=""
+        if [ -n "$STATUS_OUTPUT" ]; then
+            DIRTY=" (has uncommitted changes)"
+        fi
+        echo "✔ Reusing existing worktree: $WORKTREE_DIR" >&2
+        read -rp "Pull latest from upstream develop? [y/N] " do_pull < /dev/tty
+        if [[ "${do_pull:-N}" =~ ^[Yy]$ ]]; then
+            echo "  ▶ Pulling upstream develop..." >&2
+            git pull upstream develop >&2 || echo "  ⚠ Pull failed, continuing with current state" >&2
+            LAST_COMMIT=$(git log --oneline -1)
+        fi
+        WORKTREE_CONTEXT="IMPORTANT: This is a RESUMED session on existing branch '$CURRENT_BRANCH' (last commit: $LAST_COMMIT)${DIRTY}. Check git log and existing work before making changes."
+    elif branch_exists "$BRANCH_NAME"; then
+        git worktree add "$WORKTREE_DIR" "$BRANCH_NAME" >&2
+        WORKTREE_CONTEXT="IMPORTANT: This is a RESUMED session on existing branch '$BRANCH_NAME' reattached to a recreated worktree. Check git log and existing work before making changes."
+        echo "✔ Reattached existing branch to new worktree: $WORKTREE_DIR" >&2
+    else
+        echo "❌ No existing task found for $BRANCH_NAME. Run 'just start {{ branch_name }} ...' first." >&2
+        exit 1
     fi
 
     printf 'PADDLE_PATH=%q\n' "$WORKTREE_DIR"
@@ -305,17 +419,26 @@ _setup-worktree PAA_ROOT PADDLE_SRC branch_name:
     printf 'WORKTREE_CONTEXT=%q\n' "$WORKTREE_CONTEXT"
 
 # 根据 tool 类型启动 agent（支持 opencode / claude / ducc）
+# prompt 写入临时文件再通过 stdin 管道传入，避免 shell 转义和参数长度问题
 _launch-agent tool agent prompt:
     #!/usr/bin/env bash
     set -euo pipefail
     echo "Launching agent '{{ agent }}' with tool '{{ tool }}'..."
+
+    PROMPT_FILE=$(mktemp /tmp/paa-prompt-XXXXXX.txt)
+    printf '%s' {{ quote(prompt) }} > "$PROMPT_FILE"
+    trap 'rm -f "$PROMPT_FILE"' EXIT
+
     case "{{ tool }}" in
         opencode)
-            opencode run --agent "{{ agent }}" "{{ prompt }}"
-            # opencode --agent "{{ agent }}" --prompt "{{ prompt }}"
+            # cat "$PROMPT_FILE" | opencode run --agent {{ quote(agent) }}
+            cat "$PROMPT_FILE" | opencode --agent {{ quote(agent) }}
+            ;;
+        copilot)
+            cat "$PROMPT_FILE" | copilot --agent {{ quote(agent) }}
             ;;
         claude|ducc)
-            {{ tool }} --agent "{{ agent }}" "{{ prompt }}"
+            cat "$PROMPT_FILE" | {{ tool }} --agent {{ quote(agent) }}
             ;;
         *)
             echo "Error: unsupported tool '{{ tool }}'. Use 'opencode', 'claude', or 'ducc'."

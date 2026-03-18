@@ -32,7 +32,7 @@ Build Paddle, run smoke tests, diagnose failures, and commit successful changes.
 
 ## Build & Install
 
-Run from the **agent project root** (where the Justfile is):
+Run from the **agent project root** (where the justfile is):
 `just agentic-paddle-build-and-install ${VENV_PATH} ${PADDLE_PATH}`
 
 On failure: capture the full error block (~10-20 lines) and report it.
