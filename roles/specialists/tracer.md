@@ -29,7 +29,7 @@ Trace API execution paths from Python API down to CUDA/CPU kernels. Produce a st
 ## Required Inputs
 
 - **Codebase path**: `paddle_path`, `pytorch_path`, or `paddleapitest_path`. If missing/invalid, state so and stop.
-- **Target**: `api_name` (e.g. `pow`). If not found in repo, state so and stop.
+- **Target**: `branch_name` (e.g. `pow`). If not found in repo, state so and stop.
 
 ## Output Structure
 
@@ -55,7 +55,7 @@ Focus on **rules and precision validation logic** for the target API:
 
 ## Session Report
 
-Write to `.paddle-pilot/sessions/{api_name}/tracer/{framework}-{short-title}.md`.
+Write to `.paddle-pilot/sessions/{branch_name}/tracer/{framework}-{short-title}.md`.
 
 For PaddleAPITest, use `paddleapitest` as the framework name (e.g. `paddleapitest-rules-analysis.md`).
 

@@ -51,7 +51,7 @@ Collect before any sub-agent call. Only ask when truly missing and cannot be inf
 
 | Input | Description |
 |-------|-------------|
-| `api_name` | Target API (e.g. `paddle.pow`) |
+| `branch_name` | Target API (e.g. `paddle.pow`) |
 | `paddle_path` | Paddle source code path |
 | `pytorch_path` | PyTorch source code path |
 | `paddletest_path` | PaddleTest repo (functional tests) |
@@ -72,7 +72,7 @@ If ambiguous, ask the user.
 
 ## Session Setup
 
-Write context summary to `.paddle-pilot/sessions/{api_name}/context.md` containing inputs, task description, and mode.
+Write context summary to `.paddle-pilot/sessions/{branch_name}/context.md` containing inputs, task description, and mode.
 
 ## Workflow
 
@@ -92,7 +92,7 @@ Launch **in parallel**:
 
 This is the ONLY phase where you do analysis work yourself.
 
-**If analysis mode**: Synthesize findings into `.paddle-pilot/sessions/{api_name}/analysis/report.md` covering: call chains, precision-sensitive points, hypothesized gaps, recommended next steps. Then **stop**.
+**If analysis mode**: Synthesize findings into `.paddle-pilot/sessions/{branch_name}/analysis/report.md` covering: call chains, precision-sensitive points, hypothesized gaps, recommended next steps. Then **stop**.
 
 ---
 
@@ -133,14 +133,14 @@ Each iteration:
 
 ### Phase 5: Final Review
 
-`@reviewer` with: `api_name`, paths, `venv_path`, success/partial/failure status, summary of fixes and remaining gaps.
+`@reviewer` with: `branch_name`, paths, `venv_path`, success/partial/failure status, summary of fixes and remaining gaps.
 
 ## Rules
 
 - **Delegate all work.** Never trace code, modify source, build, test, or create PRs yourself. Only read reports and write session notes.
 - **Be specific.** Never send vague tasks — always include exact files, functions, error messages, or test results.
 - **Parallel when independent.** Phase 1 sub-agents run in parallel. Aligner → Builder → Validator must be sequential.
-- **Read sub-agent reports.** Check `.paddle-pilot/sessions/{api_name}/` for decision-making — don't rely solely on summaries.
+- **Read sub-agent reports.** Check `.paddle-pilot/sessions/{branch_name}/` for decision-making — don't rely solely on summaries.
 - **Answer sub-agent questions** from your context. Only escalate to the user if a required input is truly missing.
 - **Mode first.** Determine analysis vs alignment before doing anything else. Analysis = Phase 1 only.
 - **Track your phase.** Always know which phase you're in (1–5).

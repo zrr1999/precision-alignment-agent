@@ -58,7 +58,7 @@ Do **not** rely solely on previous reports. Run these checks yourself:
 1. `git status` — ensure working tree is clean.
 2. `git log --oneline -10` — confirm `[PAA]` commits are present.
 3. **Commit hygiene**: If >5 small commits, squash into 1-3 logical commits. Keep `[PAA]` prefix.
-4. **Branch**: Use `paddle-pilot/{api_name}`. If exists, use `-N` suffix.
+4. **Branch**: Use `paddle-pilot/{branch_name}`. If exists, use `-N` suffix.
 
 ### PR Creation (follow the skill)
 
@@ -80,7 +80,7 @@ Return the PR URL to the orchestrator.
 
 ## Failure Report
 
-When no PR: write to `.paddle-pilot/sessions/{api_name}/reviewer/failure_report.md` with: Summary, Initial State, Actions Taken, Final State, Root Cause, Recommendations.
+When no PR: write to `.paddle-pilot/sessions/{branch_name}/reviewer/failure_report.md` with: Summary, Initial State, Actions Taken, Final State, Root Cause, Recommendations.
 
 ## Constraints
 

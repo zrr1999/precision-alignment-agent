@@ -60,7 +60,7 @@ When in doubt, **do not change the computation** — only change how/where it ru
 
 ## Session Report
 
-Write to `.paddle-pilot/sessions/{api_name}/optimizer/{short-title}.md`: files modified, technique applied, expected vs actual impact, precision assessment, open issues.
+Write to `.paddle-pilot/sessions/{branch_name}/optimizer/{short-title}.md`: files modified, technique applied, expected vs actual impact, precision assessment, open issues.
 
 ## Constraints
 

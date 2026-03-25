@@ -7,3 +7,5 @@
 .paddle-pilot-*/
 .agents
 .github/agents/
+.loom/
+.tensor-spec/

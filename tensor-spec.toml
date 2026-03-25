@@ -1,0 +1,17 @@
+[sources.paddle]
+# index_url = "https://www.paddlepaddle.org.cn/packages/stable/{cuda_version}/"
+# package = "paddlepaddle-gpu"
+# whl = "/path/to/local.whl"  # local whl overrides index install
+
+[sources.torch]
+# index_url = "https://download.pytorch.org/whl/cu124"
+# whl = ""
+
+[defaults]
+backend_a = "paddle"
+backend_b = "torch"
+seed = 42
+
+[tolerance.default]
+atol = 0
+rtol = 0

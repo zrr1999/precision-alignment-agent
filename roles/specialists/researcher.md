@@ -26,7 +26,7 @@ Find existing Paddle PRs related to precision alignment for the target API. Extr
 
 ## Required Inputs
 
-- **`api_name`**: Target API or keywords. If missing, state so and stop.
+- **`branch_name`**: Target API or keywords. If missing, state so and stop.
 - **Scope** (optional): Default **PaddlePaddle/Paddle**. May include PaddlePaddle/PaddleFormers.
 - **Recency** (optional): Default `18m`.
 
@@ -40,8 +40,8 @@ Keywords: `precision`, `accuracy`, `[PAA]`, `[Precision Depth Alignment]`, plus 
 
 ### Phase B — Web search expansion
 
-- `site:github.com/PaddlePaddle/Paddle/pull {api_name} precision`
-- `PaddlePaddle Paddle {api_name} accuracy alignment`
+- `site:github.com/PaddlePaddle/Paddle/pull {branch_name} precision`
+- `PaddlePaddle Paddle {branch_name} accuracy alignment`
 
 ### Phase C — Check existing knowledge
 
@@ -59,9 +59,9 @@ Relevance scale: 5 = same API, 4 = same kernel family, 3 = similar issue type, 2
 
 ## Output Structure
 
-Write to `.paddle-pilot/sessions/{api_name}/researcher/prior-art.md`:
+Write to `.paddle-pilot/sessions/{branch_name}/researcher/prior-art.md`:
 
-1. **Input Confirmation**: "Searched for: {api_name}; repos: {repos}; keywords: {list}; date: {date}."
+1. **Input Confirmation**: "Searched for: {branch_name}; repos: {repos}; keywords: {list}; date: {date}."
 2. **PR Table**: #, PR (linked), Title, Status, Date, Relevance (1-5).
 3. **Deep Dives**: One subsection per top PR — Problem, Root Cause, Fix (with code), Reusability.
 4. **Extracted Patterns**: Abstract, API-independent patterns: when it applies (symptom), root cause, fix recipe, typical files.

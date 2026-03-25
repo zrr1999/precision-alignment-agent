@@ -103,7 +103,7 @@ just resume <branch_name> [tool] [additional_prompt]
 
 `tool` 参数支持 `opencode`（默认）、`claude`、`ducc`、`copilot`。
 
-路径可通过环境变量覆盖：`PADDLE_PATH`、`PYTORCH_PATH`、`PADDLETEST_PATH`、`PADDLEAPITEST_PATH`、`TENSOR_SPEC_PATH`。
+路径可通过环境变量覆盖：`PADDLE_PATH`、`PYTORCH_PATH`、`PADDLETEST_PATH`、`PADDLEAPITEST_PATH`。
 
 ## 开发说明
 

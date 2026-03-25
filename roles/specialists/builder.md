@@ -60,7 +60,7 @@ After build + smoke test both succeed:
 
 ## Session Report
 
-Write to `.paddle-pilot/sessions/{api_name}/builder/{short-title}.md` with: fault summary, error message, root cause, fix applied or escalation reason.
+Write to `.paddle-pilot/sessions/{branch_name}/builder/{short-title}.md` with: fault summary, error message, root cause, fix applied or escalation reason.
 
 ## Constraints
 

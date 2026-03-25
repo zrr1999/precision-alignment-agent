@@ -48,19 +48,18 @@ Sub-agents:
 
 | Input | Description |
 |-------|-------------|
-| `api_name` | Target API (e.g. `paddle.abs`) |
+| `branch_name` | Target API (e.g. `paddle.abs`) |
 | `paddle_path` | Paddle source code path |
 | `pytorch_path` | PyTorch source code path (for accuracy comparison only) |
 | `paddletest_path` | PaddleTest repo (functional tests) |
 | `paddleapitest_path` | PaddleAPITest repo (config generation) |
-| `tensor_spec_path` | tensor-spec tool path |
 | `venv_path` | Virtual environment path |
 | `bug_type` | `large-tensor` / `0-size` / `crash` / `general` |
 | `error_config` | Error config file or crash description (optional) |
 
 ## Session Setup
 
-Write context summary to `.paddle-pilot/sessions/{api_name}/context.md` containing inputs and task description.
+Write context summary to `.paddle-pilot/sessions/{branch_name}/context.md` containing inputs and task description.
 
 ## Workflow
 
@@ -69,8 +68,8 @@ Write context summary to `.paddle-pilot/sessions/{api_name}/context.md` containi
 **Goal**: Understand the Paddle-side implementation + gather prior art.
 
 Launch **in parallel**:
-1. `@tracer` — Paddle implementation (`paddle_path` + `api_name`)
-2. `@researcher` — prior art (`api_name` + `bug_type` keywords)
+1. `@tracer` — Paddle implementation (`paddle_path` + `branch_name`)
+2. `@researcher` — prior art (`branch_name` + `bug_type` keywords)
 
 **Do yourself** (while sub-agents run):
 - Read `knowledge/commons/` + `.paddle-pilot/memory/` for domain knowledge
@@ -80,7 +79,7 @@ Launch **in parallel**:
 
 ### Phase 2: Debug
 
-`@debugger` with: tracer's call chain report, error configs/crash logs, `bug_type`, `api_name`, `paddle_path`, `venv_path`, `tensor_spec_path`.
+`@debugger` with: tracer's call chain report, error configs/crash logs, `bug_type`, `branch_name`, `paddle_path`, `venv_path`.
 
 Read the analysis report. It should contain: minimal repro script, root cause analysis, specific fix recommendations (files, functions, changes).
 
@@ -103,7 +102,7 @@ Each iteration:
 
 ### Phase 4: Review
 
-`@reviewer` with: `api_name`, paths, `venv_path`, success/partial/failure status, summary of fixes and remaining gaps, `bug_type` for PR categorization.
+`@reviewer` with: `branch_name`, paths, `venv_path`, success/partial/failure status, summary of fixes and remaining gaps, `bug_type` for PR categorization.
 
 ## Rules
 

@@ -32,11 +32,11 @@ Run PaddleAPITest precision validation and produce structured pass/fail reports.
 ## Inputs
 
 - **`paddleapitest_path`**: PaddleAPITest repo. Do NOT use `paddletest_path` (that's for functional tests).
-- **`test_config_file`**: PaddleAPITest config. If missing, generate: `just agentic-get-precision-test-configs {api_name} ${PADDLEAPITEST_PATH}`
+- **`test_config_file`**: PaddleAPITest config. If missing, generate: `just agentic-get-precision-test-configs {branch_name} ${PADDLEAPITEST_PATH}`
 
 ## Running Tests
 
-`just agentic-run-precision-test ${VENV_PATH} ${PADDLEAPITEST_PATH} {config_file} paddle_pilot_test_log/{api_name}/...`
+`just agentic-run-precision-test ${VENV_PATH} ${PADDLEAPITEST_PATH} {config_file} paddle_pilot_test_log/{branch_name}/...`
 
 Do NOT add `FLAGS_use_accuracy_compatible_kernel` - the justfile handles it.
 
@@ -65,9 +65,9 @@ Report to caller with:
 
 ## Session Report
 
-Write to `.paddle-pilot/sessions/{api_name}/validator/{baseline|postfix|final}.md`.
+Write to `.paddle-pilot/sessions/{branch_name}/validator/{baseline|postfix|final}.md`.
 
-If rejecting (missing paths, unusable environment), write rejection report to `.paddle-pilot/sessions/{api_name}/validator/rejection.md`.
+If rejecting (missing paths, unusable environment), write rejection report to `.paddle-pilot/sessions/{branch_name}/validator/rejection.md`.
 
 ## tensor-spec Validation (for bug-fix workflow)
 
@@ -77,7 +77,7 @@ When invoked from the `@bug-fix` orchestrator, use tensor-spec instead of Paddle
 
 **Stage A — paddleonly (crash detection):**
 
-`just agentic-run-tensorspec-paddleonly $TENSOR_SPEC_PATH $VENV_PATH $CASE_FILE $LOG_DIR`
+`just agentic-run-tensorspec-paddleonly $VENV_PATH $CASE_FILE $LOG_DIR`
 
 - Runs each case on Paddle only (no PyTorch comparison)
 - Detects: crash, segfault, CUDA error, OOM
@@ -86,7 +86,7 @@ When invoked from the `@bug-fix` orchestrator, use tensor-spec instead of Paddle
 
 **Stage B — accuracy (behavioral correctness):**
 
-`just agentic-run-tensorspec-accuracy $TENSOR_SPEC_PATH $VENV_PATH $CASE_FILE $LOG_DIR`
+`just agentic-run-tensorspec-accuracy $VENV_PATH $CASE_FILE $LOG_DIR`
 
 - Compares Paddle output against PyTorch output
 - Detects: accuracy differences, shape mismatches, dtype mismatches

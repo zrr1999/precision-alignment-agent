@@ -32,15 +32,14 @@ Reproduce crashes, investigate root causes with runtime observation, and produce
 
 ## Required Inputs
 
-- **`api_name`**: Target API (e.g. `paddle.abs`)
+- **`branch_name`**: Target API (e.g. `paddle.abs`)
 - **`paddle_path`**: Paddle source code path
 - **`venv_path`**: Virtual environment path
 - **`bug_type`**: One of `large-tensor`, `0-size`, `crash`, `general`
-- **Tracer report**: Call chain report from @tracer (`.paddle-pilot/sessions/{api_name}/tracer/`)
+- **Tracer report**: Call chain report from @tracer (`.paddle-pilot/sessions/{branch_name}/tracer/`)
 - **Error context**: Crash logs, error configs, or user-provided failure description
 
 Optional:
-- **`tensor_spec_path`**: Path to tensor-spec for running validation
 - **Previous validator failure patterns** (for iterations > 1)
 
 ## Workflow
@@ -53,9 +52,9 @@ Follow the `paddle-debug` skill phases:
   - `large-tensor`: Use shape that exceeds INT32 numel (>2^31)
   - `0-size`: Use shape with a 0 dimension (e.g. `[0, 100]` or `[3, 0, 5]`)
   - `crash` / `general`: Reproduce from the error context provided
-- Script must be runnable with: `python reproduce_{api_name}.py`
+- Script must be runnable with: `python reproduce_{branch_name}.py`
 - Fixed random seed, minimal dependencies
-- Save to `.paddle-pilot/sessions/{api_name}/debugger/reproduce.py`
+- Save to `.paddle-pilot/sessions/{branch_name}/debugger/reproduce.py`
 
 ### 2. Multi-Hypothesis Investigation
 
@@ -68,13 +67,13 @@ Follow the `paddle-debug` skill phases:
 
 ### 3. Root Cause Analysis Report
 
-Write to `.paddle-pilot/sessions/{api_name}/debugger/analysis.md`:
+Write to `.paddle-pilot/sessions/{branch_name}/debugger/analysis.md`:
 
 ```
-## Root Cause Analysis: {api_name} ({bug_type})
+## Root Cause Analysis: {branch_name} ({bug_type})
 
 ### Reproduction
-- Command: `python reproduce_{api_name}.py`
+- Command: `python reproduce_{branch_name}.py`
 - Error: [exact error message]
 
 ### Hypotheses Tested

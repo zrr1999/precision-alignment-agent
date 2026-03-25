@@ -189,9 +189,9 @@ start branch_name tool="opencode" additional_prompt="":
             pytorch_path(v2.9.1)=$PYTORCH_PATH, \
             paddletest_path=$PADDLETEST_PATH, \
             paddleapitest_path=$PADDLEAPITEST_PATH, \
-            tensor_spec_path=$TENSOR_SPEC_PATH, \
             venv_path=$VENV_PATH] \
             $WORKTREE_CONTEXT \
+            需要把用户的要求全量修完，剩余 case 如确实不能修，必须给出可核查的实现/上游限制依据，不接受泛泛理由。\
             $ADDITIONAL_PROMPT"
 
     just _launch-agent "{{ tool }}" "$AGENT" "$PROMPT"
@@ -229,7 +229,6 @@ resume branch_name tool="opencode" additional_prompt="":
             pytorch_path=$PYTORCH_PATH, \
             paddletest_path=$PADDLETEST_PATH, \
             paddleapitest_path=$PADDLEAPITEST_PATH, \
-            tensor_spec_path=$TENSOR_SPEC_PATH, \
             venv_path=$VENV_PATH] \
             $WORKTREE_CONTEXT \
             $ADDITIONAL_PROMPT"
@@ -250,25 +249,21 @@ _resolve-paths:
     PYTORCH_PATH="${PYTORCH_PATH:=.paddle-pilot/repos/pytorch}"
     PADDLETEST_PATH="${PADDLETEST_PATH:=.paddle-pilot/repos/PaddleTest}"
     PADDLEAPITEST_PATH="${PADDLEAPITEST_PATH:=.paddle-pilot/repos/PaddleAPITest}"
-    TENSOR_SPEC_PATH="${TENSOR_SPEC_PATH:=/workspace/tensor-spec}"
 
     PADDLE_PATH="$(cd "$PADDLE_PATH" && pwd)"
     PYTORCH_PATH="$(cd "$PYTORCH_PATH" && pwd)"
     PADDLETEST_PATH="$(cd "$PADDLETEST_PATH" && pwd)"
     PADDLEAPITEST_PATH="$(cd "$PADDLEAPITEST_PATH" && pwd)"
-    TENSOR_SPEC_PATH="$(cd "$TENSOR_SPEC_PATH" 2>/dev/null && pwd || echo "$TENSOR_SPEC_PATH")"
 
     echo "  PADDLE_PATH:       $PADDLE_PATH" >&2
     echo "  PYTORCH_PATH:      $PYTORCH_PATH" >&2
     echo "  PADDLETEST_PATH:   $PADDLETEST_PATH" >&2
     echo "  PADDLEAPITEST_PATH:$PADDLEAPITEST_PATH" >&2
-    echo "  TENSOR_SPEC_PATH:  $TENSOR_SPEC_PATH" >&2
 
     printf 'PADDLE_PATH=%q\n' "$PADDLE_PATH"
     printf 'PYTORCH_PATH=%q\n' "$PYTORCH_PATH"
     printf 'PADDLETEST_PATH=%q\n' "$PADDLETEST_PATH"
     printf 'PADDLEAPITEST_PATH=%q\n' "$PADDLEAPITEST_PATH"
-    printf 'TENSOR_SPEC_PATH=%q\n' "$TENSOR_SPEC_PATH"
 
 # Setup worktree with interactive reuse prompts. Outputs eval-able KEY=VALUE lines to stdout.
 # If worktree already exists, asks user whether to create a fresh branch (default: No).
@@ -435,7 +430,7 @@ _launch-agent tool agent prompt:
             cat "$PROMPT_FILE" | opencode --agent {{ quote(agent) }}
             ;;
         copilot)
-            cat "$PROMPT_FILE" | copilot --agent {{ quote(agent) }}
+            copilot --agent {{ quote(agent) }} --yolo -i "$(cat $PROMPT_FILE)"
             ;;
         claude|ducc)
             cat "$PROMPT_FILE" | {{ tool }} --agent {{ quote(agent) }}
@@ -461,12 +456,13 @@ agentic-venv-setup PADDLE_PATH:
     set -euo pipefail
     cd {{ PADDLE_PATH }}/
     if [ ! -d "{{ PADDLE_PATH }}/.venv" ]; then
-        uv venv --relocatable --seed --python 3.10
+        uv venv --relocatable --seed --python 3.12
     fi
     source .venv/bin/activate
     uvx prek install
     uv pip install -r {{ PADDLE_PATH }}/python/requirements.txt
-    uv pip install func_timeout pandas pebble pynvml pyyaml typer httpx "numpy<2.0" torchvision torch==2.9.1
+    uv pip install wheel func_timeout pandas pebble pynvml pyyaml typer httpx "numpy<2.0" torchvision torch==2.9.1
+    uv pip install tensor_spec
     echo "Dependencies install completed successfully in {{PADDLE_PATH}}."
 
 # Build and install Paddle in virtual environment
@@ -478,7 +474,8 @@ agentic-paddle-build-and-install PADDLE_PATH:
     source .venv/bin/activate
     mkdir -p build
     cd build
-    cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPY_VERSION=3.10 -DCUDA_ARCH_NAME=Auto -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja
+    cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCUDA_ARCH_NAME=Auto -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja \
+    -DPY_VERSION=3.12 -DPYTHON_EXECUTABLE=$(which python) -DPYTHON_INCLUDE_DIR=$(python -c "import sysconfig; print(sysconfig.get_path('include'))") -DPYTHON_LIBRARY=$(python -c "import sysconfig; print(sysconfig.get_config_var('LIBDIR'))")/libpython3.so
     ninja -j$(nproc)
     echo "Installing Paddle..."
     cd "{{ PADDLE_PATH }}"
@@ -575,38 +572,39 @@ agentic-run-precision-cpu-test PADDLE_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DI
     echo "Full path: {{ PADDLEAPITEST_PATH }}/paddle_pilot_test_log/{{ LOG_DIR }}"
 
 # --- Testing: tensor-spec (Bug-Fix Workflow) ---
+# Usage: `uvx tensor-spec check` — no local clone needed.
+#   1 backend  → paddleonly (crash detection)
+#   2 backends → accuracy comparison
 
-# Run tensor-spec paddleonly test (single backend, crash detection). For bug-fix validation Stage A.
-agentic-run-tensorspec-paddleonly TENSOR_SPEC_PATH VENV_PATH CASE_FILE LOG_DIR:
+# Run tensor-spec paddleonly check (single backend, crash detection). For bug-fix validation Stage A.
+agentic-run-tensorspec-paddleonly VENV_PATH CASE_FILE LOG_DIR:
     #!/usr/bin/env bash
     set -euo pipefail
     mkdir -p "{{ LOG_DIR }}"
-    cd "{{ TENSOR_SPEC_PATH }}"
-    echo "Running tensor-spec paddleonly test..."
+    echo "Running tensor-spec paddleonly check..."
     echo "Case file: {{ CASE_FILE }}"
     echo "Log dir: {{ LOG_DIR }}"
-    uv run tensor-spec run \
+    uvx tensor-spec check \
         --backend paddle \
         --case-file "{{ CASE_FILE }}" \
-        --python-a "{{ VENV_PATH }}/bin/python" \
+        --python "{{ VENV_PATH }}/bin/python" \
         --log-file "{{ LOG_DIR }}/paddleonly.jsonl" \
         --verbose || true
     echo "---"
     echo "Results: {{ LOG_DIR }}/paddleonly.jsonl"
 
-# Run tensor-spec accuracy test (dual backend comparison). For bug-fix validation Stage B.
-agentic-run-tensorspec-accuracy TENSOR_SPEC_PATH VENV_PATH CASE_FILE LOG_DIR:
+# Run tensor-spec accuracy check (dual backend comparison). For bug-fix validation Stage B.
+agentic-run-tensorspec-accuracy VENV_PATH CASE_FILE LOG_DIR:
     #!/usr/bin/env bash
     set -euo pipefail
     mkdir -p "{{ LOG_DIR }}"
-    cd "{{ TENSOR_SPEC_PATH }}"
-    echo "Running tensor-spec accuracy test..."
+    echo "Running tensor-spec accuracy check..."
     echo "Case file: {{ CASE_FILE }}"
     echo "Log dir: {{ LOG_DIR }}"
-    uv run tensor-spec accuracy \
-        --backend-a paddle --backend-b torch \
+    uvx tensor-spec check \
+        --backend paddle --backend torch \
         --case-file "{{ CASE_FILE }}" \
-        --python-a "{{ VENV_PATH }}/bin/python" \
+        --python "{{ VENV_PATH }}/bin/python" \
         --log-file "{{ LOG_DIR }}/accuracy.jsonl" \
         --verbose || true
     echo "---"

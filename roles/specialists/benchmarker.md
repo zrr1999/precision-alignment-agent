@@ -31,7 +31,7 @@ Install PaddlePaddle dev builds and run before/after performance benchmarks. Pro
 
 ## Required Inputs
 
-- **`api_name`**: Target API. If missing, stop.
+- **`branch_name`**: Target API. If missing, stop.
 - **`venv_path`**: Virtual environment path. If missing, stop.
 - **`paddle_path`** (optional): Needed only for locally built version.
 - **`baseline_version`** (optional): Baseline wheel. Default: latest nightly dev build.
@@ -64,16 +64,16 @@ When no custom script is provided, generate one covering:
 
 ## Workflow
 
-1. **Baseline**: install baseline → verify → run benchmark → save to `.paddle-pilot/sessions/{api_name}/benchmarker/baseline-raw.txt`
+1. **Baseline**: install baseline → verify → run benchmark → save to `.paddle-pilot/sessions/{branch_name}/benchmarker/baseline-raw.txt`
 2. **Post-fix**: verify post-fix installed → run **exact same** script → save to `postfix-raw.txt`
 3. **Compare**: per-case delta `(postfix - baseline) / baseline * 100%`. Flag >5% slowdown. If std > 10% of mean, mark as noisy.
 
 ## Report
 
-Write to `.paddle-pilot/sessions/{api_name}/benchmarker/benchmark-report.md`:
+Write to `.paddle-pilot/sessions/{branch_name}/benchmarker/benchmark-report.md`:
 
 ```
-# Benchmark Report: {api_name}
+# Benchmark Report: {branch_name}
 ## Environment: GPU, baseline version/commit, post-fix version/commit
 ## Summary: total cases, regressions (>5%), improvements (>5%), neutral
 ## Results Table: Shape | Dtype | Direction | Baseline (ms) | Post-fix (ms) | Delta (%) | Status

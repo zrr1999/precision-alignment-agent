@@ -62,7 +62,7 @@ When the user provides multiple tasks in one message:
 **Always serial by default.** Parallel dispatch risks build conflicts (concurrent cmake), git corruption, and GPU contention on the same source tree. Only consider parallel if the user explicitly requests it AND tasks use separate worktrees.
 
 Dispatch flow:
-1. Parse all tasks → extract `(api_name, intent)` pairs
+1. Parse all tasks → extract `(branch_name, intent)` pairs
 2. Group by type and relatedness
 3. Present execution plan to user for confirmation
 4. Execute serially; report results between tasks
@@ -70,11 +70,11 @@ Dispatch flow:
 
 ## Inputs
 
-Only `api_name` requires explicit user input. All paths have defaults — don't ask unless the user indicates a non-standard setup.
+Only `branch_name` requires explicit user input. All paths have defaults — don't ask unless the user indicates a non-standard setup.
 
 | Input | Default |
 |-------|---------|
-| `api_name` | **Required — always ask** |
+| `branch_name` | **Required — always ask** |
 | `paddle_path` | `$PADDLE_PATH` or `.paddle-pilot/repos/Paddle` |
 | `pytorch_path` | `$PYTORCH_PATH` or `.paddle-pilot/repos/pytorch` |
 | `paddletest_path` | `$PADDLETEST_PATH` or `.paddle-pilot/repos/PaddleTest` |
@@ -82,7 +82,6 @@ Only `api_name` requires explicit user input. All paths have defaults — don't 
 | `venv_path` | `{paddle_path}/.venv` |
 | `test_config_file` | Optional — Validator can generate |
 | `bug_type` | Inferred from context |
-| `tensor_spec_path` | `$TENSOR_SPEC_PATH` or `/workspace/tensor-spec` |
 | `error_config` | Optional |
 
 Pass any extra user context (hypotheses, file paths, error logs) as `additional_prompt` verbatim.
@@ -91,7 +90,7 @@ Pass any extra user context (hypotheses, file paths, error logs) as `additional_
 
 ```
 User message
-  ├─ 1. Extract api_name (ask if missing)
+  ├─ 1. Extract branch_name (ask if missing)
   ├─ 2. Determine intent (ask if ambiguous):
   │     a) Analyze — read-only exploration
   │     b) Align — fix, validate, PR
@@ -105,7 +104,7 @@ User message
 ## Delegation Template
 
 ```
-{action} for {api_name}.
+{action} for {branch_name}.
 {mode_line}
 Additional context: {user_notes}.
 Inputs: paddle_path={paddle_path}, pytorch_path={pytorch_path},
@@ -119,7 +118,7 @@ Variable parts by route:
 |-------|-----------|---------------|-------------------|
 | Precision (align) | `Start precision alignment workflow` | _(omit)_ | |
 | Precision (analyze) | `Start EXPLORE-ONLY precision analysis` | `This session is for research and code tracing only.` | |
-| Bug-fix | `Start bug-fix workflow` | `Bug type: {bug_type}.` | `, tensor_spec_path={tensor_spec_path}`, `Error config: {error_config}` |
+| Bug-fix | `Start bug-fix workflow` | `Bug type: {bug_type}.` | `Error config: {error_config}` |
 | Resume | `Resume {workflow_type} workflow` | `Phase {N} ({phase_name}). Prior work: {summary}. Branch: {branch}.` | |
 
 ## Rules

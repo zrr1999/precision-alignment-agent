@@ -57,7 +57,7 @@ Make targeted code changes to align Paddle operator precision with PyTorch.
 
 ## Session Report
 
-Write to `.paddle-pilot/sessions/{api_name}/aligner/{short-title}.md` with: files modified, issue addressed, expected impact, open issues.
+Write to `.paddle-pilot/sessions/{branch_name}/aligner/{short-title}.md` with: files modified, issue addressed, expected impact, open issues.
 
 ## Constraints
 
