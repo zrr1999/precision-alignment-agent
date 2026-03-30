@@ -11,7 +11,7 @@ model:
   temperature: 0.05
 
 skills:
-  - just-workflow
+  - precision-validation
   - knowledge-curation
 
 capabilities:
@@ -32,11 +32,11 @@ Run PaddleAPITest precision validation and produce structured pass/fail reports.
 ## Inputs
 
 - **`paddleapitest_path`**: PaddleAPITest repo. Do NOT use `paddletest_path` (that's for functional tests).
-- **`test_config_file`**: PaddleAPITest config. If missing, generate: `just agentic-get-precision-test-configs {branch_name} ${PADDLEAPITEST_PATH}`
+- **`test_config_file`**: PaddleAPITest config. If missing, generate: `just agentic-get-precision-test-configs {api_name} ${PADDLEAPITEST_PATH}`
 
 ## Running Tests
 
-`just agentic-run-precision-test ${VENV_PATH} ${PADDLEAPITEST_PATH} {config_file} paddle_pilot_test_log/{branch_name}/...`
+`just agentic-run-precision-test ${PADDLE_PATH} ${PADDLEAPITEST_PATH} {config_file} paddle_pilot_test_log/{branch_name}/...`
 
 Do NOT add `FLAGS_use_accuracy_compatible_kernel` - the justfile handles it.
 

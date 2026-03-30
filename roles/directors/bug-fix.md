@@ -11,7 +11,6 @@ model:
   temperature: 0.2
 
 skills:
-  - just-workflow
   - knowledge-curation
 
 capabilities:

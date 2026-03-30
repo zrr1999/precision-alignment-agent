@@ -11,7 +11,8 @@ model:
 
 skills:
   - paddle-debug
-  - just-workflow
+  - paddle-build
+  - paddle-test
 
 capabilities:
   - read

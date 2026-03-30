@@ -9,8 +9,7 @@ model:
   tier: coding
   temperature: 0.3
 
-skills:
-  - just-workflow
+skills: []
 
 capabilities:
   - read

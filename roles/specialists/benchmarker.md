@@ -11,7 +11,7 @@ model:
   temperature: 0.05
 
 skills:
-  - just-workflow
+  - paddle-build
   - knowledge-curation
 
 capabilities:

@@ -11,7 +11,7 @@ model:
 
 skills:
   - paddle-pull-request
-  - just-workflow
+  - paddle-test
   - knowledge-curation
 
 capabilities:

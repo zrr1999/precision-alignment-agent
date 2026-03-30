@@ -168,7 +168,7 @@ setup-repos username="":
     echo "✔ Repos ready at .paddle-pilot/repos/"
 
 # 启动 paddle-agent
-start branch_name tool="opencode" additional_prompt="":
+start branch_name tool="opencode" additional_prompt="" runtime="direct":
     #!/usr/bin/env bash
     set -euo pipefail
     PAA_ROOT=$(pwd)
@@ -194,10 +194,10 @@ start branch_name tool="opencode" additional_prompt="":
             需要把用户的要求全量修完，剩余 case 如确实不能修，必须给出可核查的实现/上游限制依据，不接受泛泛理由。\
             $ADDITIONAL_PROMPT"
 
-    just _launch-agent "{{ tool }}" "$AGENT" "$PROMPT"
+    just _launch-agent "{{ tool }}" "$AGENT" "$PROMPT" "{{ branch_name }}" "{{ runtime }}" "$PADDLE_PATH"
 
 # 复用现有任务分支/工作树，优先跳过已有的 build 和 venv
-resume branch_name tool="opencode" additional_prompt="":
+resume branch_name tool="opencode" additional_prompt="" runtime="direct":
     #!/usr/bin/env bash
     set -euo pipefail
     PAA_ROOT=$(pwd)
@@ -233,7 +233,7 @@ resume branch_name tool="opencode" additional_prompt="":
             $WORKTREE_CONTEXT \
             $ADDITIONAL_PROMPT"
 
-    just _launch-agent "{{ tool }}" "$AGENT" "$PROMPT"
+    just _launch-agent "{{ tool }}" "$AGENT" "$PROMPT" "{{ branch_name }}" "{{ runtime }}" "$PADDLE_PATH"
 
 # ============================================================================
 # Internal Recipes (prefixed with _)
@@ -413,199 +413,193 @@ _resume-worktree PAA_ROOT PADDLE_SRC branch_name:
     printf 'VENV_PATH=%q\n' "$WORKTREE_DIR/.venv"
     printf 'WORKTREE_CONTEXT=%q\n' "$WORKTREE_CONTEXT"
 
-# 根据 tool 类型启动 agent（支持 opencode / claude / ducc）
-# prompt 写入临时文件再通过 stdin 管道传入，避免 shell 转义和参数长度问题
-_launch-agent tool agent prompt:
+# 附加到某个分支对应的 zellij session
+zellij-attach branch_name:
     #!/usr/bin/env bash
     set -euo pipefail
-    echo "Launching agent '{{ agent }}' with tool '{{ tool }}'..."
+    RUNTIME_FILE=".paddle-pilot/sessions/{{ branch_name }}/runtime.json"
+    if [ ! -f "$RUNTIME_FILE" ]; then
+        echo "❌ Runtime metadata not found: $RUNTIME_FILE" >&2
+        exit 1
+    fi
+    SESSION_NAME="$(python -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8")).get("zellij_session_name", ""))' "$RUNTIME_FILE")"
+    if [ -z "$SESSION_NAME" ]; then
+        echo "❌ Branch '{{ branch_name }}' was not launched with runtime=zellij." >&2
+        exit 1
+    fi
+    exec zellij attach "$SESSION_NAME"
 
-    PROMPT_FILE=$(mktemp /tmp/paa-prompt-XXXXXX.txt)
+# 查看某个分支记录的 runtime 元数据，以及对应 zellij session 是否还在线
+zellij-runtime-status branch_name:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    RUNTIME_FILE=".paddle-pilot/sessions/{{ branch_name }}/runtime.json"
+    if [ ! -f "$RUNTIME_FILE" ]; then
+        echo "❌ Runtime metadata not found: $RUNTIME_FILE" >&2
+        exit 1
+    fi
+
+    python -c 'import json, sys; data = json.load(open(sys.argv[1], encoding="utf-8")); [print(f"{key}: {data.get(key)}") for key in ["runtime", "tool", "agent", "branch_name", "worktree_dir", "prompt_file", "launched_at", "zellij_session_name", "zellij_pane_id", "zellij_tab_id", "pane_name"]]' "$RUNTIME_FILE"
+
+    SESSION_NAME="$(python -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8")).get("zellij_session_name", ""))' "$RUNTIME_FILE")"
+    PANE_ID="$(python -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8")).get("zellij_pane_id", ""))' "$RUNTIME_FILE")"
+
+    if [ -n "$SESSION_NAME" ] && command -v zellij >/dev/null 2>&1; then
+        if zellij list-sessions 2>/dev/null | tr -d '\r' | grep -Fx "$SESSION_NAME" >/dev/null; then
+            echo "session_running: true"
+            if [ -n "$PANE_ID" ]; then
+                echo "pane_snapshot:"
+                zellij --session "$SESSION_NAME" action list-panes --all | awk -v pane="$PANE_ID" 'NR==1 || $1==pane'
+            fi
+        else
+            echo "session_running: false"
+        fi
+    fi
+
+# 根据 tool 类型启动 agent（支持 opencode / claude / ducc / copilot）
+# prompt 会持久化到 .paddle-pilot/sessions/{branch_name}/，便于 zellij runtime 和后续 reattach
+_launch-agent tool agent prompt branch_name runtime worktree_dir:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "Launching agent '{{ agent }}' with tool '{{ tool }}' via runtime '{{ runtime }}'..."
+
+    REPO_ROOT="$(pwd)"
+    SESSION_DIR="$REPO_ROOT/.paddle-pilot/sessions/{{ branch_name }}"
+    PROMPT_FILE="$SESSION_DIR/launch-prompt.txt"
+    RUNTIME_FILE="$SESSION_DIR/runtime.json"
+    mkdir -p "$SESSION_DIR"
     printf '%s' {{ quote(prompt) }} > "$PROMPT_FILE"
-    trap 'rm -f "$PROMPT_FILE"' EXIT
 
-    case "{{ tool }}" in
-        opencode)
-            # cat "$PROMPT_FILE" | opencode run --agent {{ quote(agent) }}
-            cat "$PROMPT_FILE" | opencode --agent {{ quote(agent) }}
+    sanitize_name() {
+        local raw="$1"
+        raw="$(printf '%s' "$raw" | tr '/[:space:]' '--' | tr -cs '[:alnum:]._-' '-')"
+        raw="${raw#-}"
+        raw="${raw%-}"
+        if [ -z "$raw" ]; then
+            raw="paa"
+        fi
+        printf '%s' "$raw"
+    }
+
+    build_agent_command() {
+        local tool="$1"
+        local agent="$2"
+        local prompt_file="$3"
+        case "$tool" in
+            opencode)
+                printf 'cat %q | opencode --agent %q' "$prompt_file" "$agent"
+                ;;
+            copilot)
+                printf 'copilot --agent %q --yolo -i "$(cat %q)"' "$agent" "$prompt_file"
+                ;;
+            claude|ducc)
+                printf 'cat %q | %q --agent %q' "$prompt_file" "$tool" "$agent"
+                ;;
+            *)
+                echo "Error: unsupported tool '$tool'. Use 'opencode', 'claude', 'ducc', or 'copilot'." >&2
+                exit 1
+                ;;
+        esac
+    }
+
+    write_runtime_file() {
+        python -c 'import json, os, sys; data = {"runtime": os.environ["PAA_RUNTIME"], "tool": os.environ["PAA_TOOL"], "agent": os.environ["PAA_AGENT"], "branch_name": os.environ["PAA_BRANCH_NAME"], "worktree_dir": os.environ["PAA_WORKTREE_DIR"], "prompt_file": os.environ["PAA_PROMPT_FILE"], "launch_command": os.environ["PAA_LAUNCH_COMMAND"], "launched_at": os.environ["PAA_LAUNCHED_AT"], "zellij_session_name": os.environ.get("PAA_ZELLIJ_SESSION_NAME") or None, "zellij_pane_id": os.environ.get("PAA_ZELLIJ_PANE_ID") or None, "zellij_tab_id": int(os.environ["PAA_ZELLIJ_TAB_ID"]) if os.environ.get("PAA_ZELLIJ_TAB_ID") else None, "pane_name": os.environ.get("PAA_PANE_NAME") or None}; open(sys.argv[1], "w", encoding="utf-8").write(json.dumps(data, ensure_ascii=False, indent=2) + "\n")' "$RUNTIME_FILE"
+    }
+
+    AGENT_COMMAND="$(build_agent_command "{{ tool }}" "{{ agent }}" "$PROMPT_FILE")"
+    export PAA_RUNTIME="{{ runtime }}"
+    export PAA_TOOL="{{ tool }}"
+    export PAA_AGENT="{{ agent }}"
+    export PAA_BRANCH_NAME="{{ branch_name }}"
+    export PAA_WORKTREE_DIR="{{ worktree_dir }}"
+    export PAA_PROMPT_FILE="$PROMPT_FILE"
+    export PAA_LAUNCH_COMMAND="$AGENT_COMMAND"
+    export PAA_LAUNCHED_AT="$(date -Iseconds)"
+    export PAA_ZELLIJ_SESSION_NAME=""
+    export PAA_ZELLIJ_PANE_ID=""
+    export PAA_ZELLIJ_TAB_ID=""
+    export PAA_PANE_NAME=""
+
+    case "{{ runtime }}" in
+        direct)
+            write_runtime_file
+            bash -lc "$AGENT_COMMAND"
             ;;
-        copilot)
-            copilot --agent {{ quote(agent) }} --yolo -i "$(cat $PROMPT_FILE)"
-            ;;
-        claude|ducc)
-            cat "$PROMPT_FILE" | {{ tool }} --agent {{ quote(agent) }}
+        zellij)
+            if ! command -v zellij >/dev/null 2>&1; then
+                echo "❌ runtime=zellij requested but zellij is not installed or not in PATH." >&2
+                exit 1
+            fi
+
+            SESSION_NAME="$(sanitize_name "paa-{{ branch_name }}")"
+            PANE_NAME="$(sanitize_name "{{ agent }}-{{ tool }}-$(date +%Y%m%d-%H%M%S)")"
+
+            if ! zellij list-sessions 2>/dev/null | tr -d '\r' | grep -Fx "$SESSION_NAME" >/dev/null; then
+                echo "▶ Creating detached zellij session: $SESSION_NAME"
+                zellij --session "$SESSION_NAME" -d
+            fi
+
+            echo "▶ Launching agent in zellij session '$SESSION_NAME'..."
+            zellij --session "$SESSION_NAME" run --cwd "{{ worktree_dir }}" --name "$PANE_NAME" -- bash -lc "$AGENT_COMMAND" >/dev/null
+
+            read -r PANE_ID TAB_ID < <(
+                zellij --session "$SESSION_NAME" action list-panes --json | python -c 'import json, sys; pane_name = sys.argv[1]; panes = json.load(sys.stdin); match = next((pane for pane in panes if pane.get("title") == pane_name), None); prefix = "plugin" if match and match.get("is_plugin") else "terminal"; tab_id = "" if not match or match.get("tab_id") is None else match.get("tab_id"); print("" if match is None else f"{prefix}_{match['"'"'id'"'"']} {tab_id}")' "$PANE_NAME"
+            )
+
+            export PAA_ZELLIJ_SESSION_NAME="$SESSION_NAME"
+            export PAA_ZELLIJ_PANE_ID="$PANE_ID"
+            export PAA_ZELLIJ_TAB_ID="$TAB_ID"
+            export PAA_PANE_NAME="$PANE_NAME"
+            write_runtime_file
+
+            echo "✔ Zellij session ready: $SESSION_NAME"
+            if [ -n "$PANE_ID" ]; then
+                echo "✔ Agent pane: $PANE_ID"
+            fi
+            echo "Tip: run 'just zellij-attach {{ branch_name }}' to attach."
             ;;
         *)
-            echo "Error: unsupported tool '{{ tool }}'. Use 'opencode', 'claude', or 'ducc'."
+            echo "Error: unsupported runtime '{{ runtime }}'. Use 'direct' or 'zellij'." >&2
             exit 1
             ;;
     esac
 
 # ============================================================================
-# Agentic Commands - For Agent Use Only
+# Agentic Commands — thin wrappers to skills/*/scripts/
 #
-# Convention: Only commands prefixed with "agentic-" can be used by agents.
-# All commands require explicit path parameters.
+# Agents should prefer calling scripts directly via the skill SKILL.md.
+# These recipes exist so `just start` / `just resume` keep working.
 # ============================================================================
 
-# --- Build & Environment ---
+# --- paddle-build ---
 
-# Create or update relocatable venv with Paddle deps (torch, func_timeout, etc.) and Paddle python/requirements.txt.
 agentic-venv-setup PADDLE_PATH:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    cd {{ PADDLE_PATH }}/
-    if [ ! -d "{{ PADDLE_PATH }}/.venv" ]; then
-        uv venv --relocatable --seed --python 3.12
-    fi
-    source .venv/bin/activate
-    uvx prek install
-    uv pip install -r {{ PADDLE_PATH }}/python/requirements.txt
-    uv pip install wheel func_timeout pandas pebble pynvml pyyaml typer httpx "numpy<2.0" torchvision torch==2.9.1
-    uv pip install tensor_spec
-    echo "Dependencies install completed successfully in {{PADDLE_PATH}}."
+    bash skills/paddle-build/scripts/venv-setup.sh {{ PADDLE_PATH }}
 
-# Build and install Paddle in virtual environment
 agentic-paddle-build-and-install PADDLE_PATH:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    echo "Building Paddle..."
-    cd "{{ PADDLE_PATH }}"
-    source .venv/bin/activate
-    mkdir -p build
-    cd build
-    cmake .. -DPADDLE_VERSION=0.0.0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCUDA_ARCH_NAME=Auto -DWITH_GPU=ON -DWITH_DISTRIBUTE=ON -DWITH_UNITY_BUILD=OFF -DWITH_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DWITH_CINN=ON -GNinja \
-    -DPY_VERSION=3.12 -DPYTHON_EXECUTABLE=$(which python) -DPYTHON_INCLUDE_DIR=$(python -c "import sysconfig; print(sysconfig.get_path('include'))") -DPYTHON_LIBRARY=$(python -c "import sysconfig; print(sysconfig.get_config_var('LIBDIR'))")/libpython3.so
-    ninja -j$(nproc)
-    echo "Installing Paddle..."
-    cd "{{ PADDLE_PATH }}"
-    uv pip install {{ PADDLE_PATH }}/build/python/dist/*.whl --no-deps --force-reinstall
-    echo "Paddle build and install completed successfully."
+    bash skills/paddle-build/scripts/paddle-build.sh {{ PADDLE_PATH }}
 
-# --- Testing: Paddle Unit Tests & PaddleTest ---
+# --- paddle-test ---
 
-# Run Paddle internal unit test for a specific API
 agentic-run-paddle-unittest PADDLE_PATH TEST_FILE:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    cd "{{ PADDLE_PATH }}"
+    bash skills/paddle-test/scripts/run-unittest.sh {{ PADDLE_PATH }} {{ TEST_FILE }}
 
-    echo "Running Paddle unittest(FLAGS_use_accuracy_compatible_kernel=0) for {{ TEST_FILE }}..."
-    FLAGS_use_accuracy_compatible_kernel=0 \
-    uv run --no-project python "{{ TEST_FILE }}"
-
-    echo "Running Paddle unittest(FLAGS_use_accuracy_compatible_kernel=1) for {{ TEST_FILE }}..."
-    FLAGS_use_accuracy_compatible_kernel=1 \
-    uv run --no-project python "{{ TEST_FILE }}"
-
-# Run PaddleTest functional test for a specific API
 agentic-run-paddletest PADDLE_PATH PADDLETEST_PATH TEST_FILE:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    VENV_PATH="{{ PADDLE_PATH }}/.venv"
-    cd "{{ PADDLETEST_PATH }}"
+    bash skills/paddle-test/scripts/run-paddletest.sh {{ PADDLE_PATH }} {{ PADDLETEST_PATH }} {{ TEST_FILE }}
 
-    echo "Running PaddleTest(FLAGS_use_accuracy_compatible_kernel=0) for {{ TEST_FILE }}..."
-    FLAGS_use_accuracy_compatible_kernel=0 \
-    uv run --no-project -p "$VENV_PATH" python -m pytest "{{ TEST_FILE }}" -v
+# --- precision-validation ---
 
-    echo "Running PaddleTest(FLAGS_use_accuracy_compatible_kernel=1) for {{ TEST_FILE }}..."
-    FLAGS_use_accuracy_compatible_kernel=1 \
-    uv run --no-project -p "$VENV_PATH" python -m pytest "{{ TEST_FILE }}" -v
-
-# --- Testing: PaddleAPITest Precision ---
-
-# Extract precision test configs for an API from PaddleAPITest paa.txt into .paddle-pilot/config/{API_NAME}.txt for Validator use.
 agentic-get-precision-test-configs API_NAME PADDLEAPITEST_PATH:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    cat {{PADDLEAPITEST_PATH}}/.api_config/paa-v0/paa/paa.txt | grep {{API_NAME}} > .paddle-pilot/config/{{API_NAME}}.txt
-    echo "config file is saved to $(pwd)/.paddle-pilot/config/{{API_NAME}}.txt"
+    bash skills/precision-validation/scripts/get-configs.sh {{ API_NAME }} {{ PADDLEAPITEST_PATH }}
 
-# Run PaddleAPITest precision validation (returns log directory path)
 agentic-run-precision-test PADDLE_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DIR:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    VENV_PATH="{{ PADDLE_PATH }}/.venv"
-    cd "{{ PADDLEAPITEST_PATH }}"
-    echo "Removing old log files..."
-    rm -f paddle_pilot_test_log/{{ LOG_DIR }}/*.txt
-    rm -f paddle_pilot_test_log/{{ LOG_DIR }}/*.log
-    echo "Running PaddleAPITest(FLAGS_use_accuracy_compatible_kernel=1) with config: {{ CONFIG_FILE }}..."
+    bash skills/precision-validation/scripts/run-precision-test.sh {{ PADDLE_PATH }} {{ PADDLEAPITEST_PATH }} {{ CONFIG_FILE }} {{ LOG_DIR }}
 
-    FLAGS_use_accuracy_compatible_kernel=1 \
-    uv run --no-project -p "$VENV_PATH" python engineV2.py \
-        --atol=0 \
-        --rtol=0 \
-        --accuracy=True \
-        --api_config_file="{{ CONFIG_FILE }}" \
-        --log_dir="paddle_pilot_test_log/{{ LOG_DIR }}"
-
-    # Find and output the latest log directory
-    echo "---"
-    echo "Log directory: paddle_pilot_test_log/{{ LOG_DIR }}"
-    echo "Full path: {{ PADDLEAPITEST_PATH }}/paddle_pilot_test_log/{{ LOG_DIR }}"
-
-# Run PaddleAPITest precision cpu validation (returns log directory path)
 agentic-run-precision-cpu-test PADDLE_PATH PADDLEAPITEST_PATH CONFIG_FILE LOG_DIR:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    VENV_PATH="{{ PADDLE_PATH }}/.venv"
-    cd "{{ PADDLEAPITEST_PATH }}"
-    echo "Removing old log files..."
-    rm -f paddle_pilot_test_log/{{ LOG_DIR }}/*.txt
-    rm -f paddle_pilot_test_log/{{ LOG_DIR }}/*.log
-    echo "Running PaddleAPITest(FLAGS_use_accuracy_compatible_kernel=1) with config: {{ CONFIG_FILE }}..."
+    bash skills/precision-validation/scripts/run-precision-cpu-test.sh {{ PADDLE_PATH }} {{ PADDLEAPITEST_PATH }} {{ CONFIG_FILE }} {{ LOG_DIR }}
 
-    FLAGS_use_accuracy_compatible_kernel=1 \
-    uv run --no-project -p "$VENV_PATH" python engineV2.py \
-        --test_cpu=1 \
-        --atol=0 \
-        --rtol=0 \
-        --accuracy=True \
-        --api_config_file="{{ CONFIG_FILE }}" \
-        --log_dir="paddle_pilot_test_log/{{ LOG_DIR }}"
-
-    # Find and output the latest log directory
-    echo "---"
-    echo "Log directory: paddle_pilot_test_log/{{ LOG_DIR }}"
-    echo "Full path: {{ PADDLEAPITEST_PATH }}/paddle_pilot_test_log/{{ LOG_DIR }}"
-
-# --- Testing: tensor-spec (Bug-Fix Workflow) ---
-# Usage: `uvx tensor-spec check` — no local clone needed.
-#   1 backend  → paddleonly (crash detection)
-#   2 backends → accuracy comparison
-
-# Run tensor-spec paddleonly check (single backend, crash detection). For bug-fix validation Stage A.
 agentic-run-tensorspec-paddleonly VENV_PATH CASE_FILE LOG_DIR:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    mkdir -p "{{ LOG_DIR }}"
-    echo "Running tensor-spec paddleonly check..."
-    echo "Case file: {{ CASE_FILE }}"
-    echo "Log dir: {{ LOG_DIR }}"
-    uvx tensor-spec check \
-        --backend paddle \
-        --case-file "{{ CASE_FILE }}" \
-        --python "{{ VENV_PATH }}/bin/python" \
-        --log-file "{{ LOG_DIR }}/paddleonly.jsonl" \
-        --verbose || true
-    echo "---"
-    echo "Results: {{ LOG_DIR }}/paddleonly.jsonl"
+    bash skills/precision-validation/scripts/run-tensorspec-paddleonly.sh {{ VENV_PATH }} {{ CASE_FILE }} {{ LOG_DIR }}
 
-# Run tensor-spec accuracy check (dual backend comparison). For bug-fix validation Stage B.
 agentic-run-tensorspec-accuracy VENV_PATH CASE_FILE LOG_DIR:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    mkdir -p "{{ LOG_DIR }}"
-    echo "Running tensor-spec accuracy check..."
-    echo "Case file: {{ CASE_FILE }}"
-    echo "Log dir: {{ LOG_DIR }}"
-    uvx tensor-spec check \
-        --backend paddle --backend torch \
-        --case-file "{{ CASE_FILE }}" \
-        --python "{{ VENV_PATH }}/bin/python" \
-        --log-file "{{ LOG_DIR }}/accuracy.jsonl" \
-        --verbose || true
-    echo "---"
-    echo "Results: {{ LOG_DIR }}/accuracy.jsonl"
+    bash skills/precision-validation/scripts/run-tensorspec-accuracy.sh {{ VENV_PATH }} {{ CASE_FILE }} {{ LOG_DIR }}

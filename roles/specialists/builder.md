@@ -10,7 +10,9 @@ model:
   temperature: 0.05
 
 skills:
-  - just-workflow
+  - paddle-build
+  - paddle-test
+  - precision-validation
   - knowledge-curation
 
 capabilities:
@@ -33,7 +35,7 @@ Build Paddle, run smoke tests, diagnose failures, and commit successful changes.
 ## Build & Install
 
 Run from the **agent project root** (where the justfile is):
-`just agentic-paddle-build-and-install ${VENV_PATH} ${PADDLE_PATH}`
+`just agentic-paddle-build-and-install ${PADDLE_PATH}`
 
 On failure: capture the full error block (~10-20 lines) and report it.
 
@@ -46,8 +48,8 @@ On failure: capture the full error block (~10-20 lines) and report it.
 
 ## Tests
 
-- **Paddle unittest**: `just agentic-run-paddle-unittest ${VENV_PATH} ${PADDLE_PATH} {test_file}`
-- **PaddleTest**: `just agentic-run-paddletest ${VENV_PATH} ${PADDLETEST_PATH} {test_file}`
+- **Paddle unittest**: `just agentic-run-paddle-unittest ${PADDLE_PATH} {test_file}`
+- **PaddleTest**: `just agentic-run-paddletest ${PADDLE_PATH} ${PADDLETEST_PATH} {test_file}`
 
 Run at least one smoke test after each build.
 
