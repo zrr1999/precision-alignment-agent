@@ -29,28 +29,37 @@ When you are **developing, refactoring, or extending this project** (for example
 
 In this mode:
 
-1. **You are not required to follow the workflow described in `precision-alignment.md`.**
+1. **You are not required to follow the workflow described in `roles/directors/precision-alignment.md`.**
 2. You **may** read and modify any project files as needed.
 
 ---
 
 ## Architecture Overview
 
-The system uses a **flat orchestration** model: a single Main Agent (Orchestrator) directly coordinates all sub-agents.
+The system uses a **routed three-layer orchestration** model: a user-facing router delegates to directors, and each director coordinates the relevant specialists.
 
 ```
-Main Agent (Orchestrator)
-  ├── @tracer          Code tracing (read-only)
-  ├── @researcher      PR prior art (read-only)
-  ├── @aligner         Code changes (write)
-  ├── @builder         Build + smoke test + commit (bash)
-  ├── @validator       Precision test (bash)
-  └── @reviewer        Final review + PR (bash+git)
+paddle-agent (Router)
+  ├── precision-alignment (Director)
+  │     ├── @tracer          Code tracing (read-only)
+  │     ├── @researcher      PR prior art (read-only)
+  │     ├── @aligner         Code changes (write)
+  │     ├── @builder         Build + smoke test + commit (bash)
+  │     ├── @validator       Precision test (bash)
+  │     └── @reviewer        Final review + PR (bash+git)
+  └── bug-fix (Director)
+        ├── @tracer          Code tracing (read-only)
+        ├── @researcher      PR prior art (read-only)
+        ├── @debugger        Runtime debugging (bash)
+        ├── @aligner         Code changes (write)
+        ├── @builder         Build + smoke test + commit (bash)
+        ├── @validator       Bug-fix validation (bash)
+        └── @reviewer        Final review + PR (bash+git)
 ```
 
-There is also a `precision-analysis` orchestrator (`roles/precision-analysis.md`) which delegates only to `@tracer` and `@researcher` for read-only analysis.
+Read-only precision investigation is handled by the **analysis mode** inside `roles/directors/precision-alignment.md`; in that mode, the director delegates only to `@tracer` and `@researcher`.
 
-There is no intermediate planning layer. The Main Agent reads knowledge, plans the fix strategy, orchestrates the fix-validate loop (Aligner → Builder → Validator), and makes all strategic decisions with full session context.
+There is no extra planning tier between directors and specialists. Directors read knowledge, plan fix strategy, orchestrate the fix-validate loop (Aligner → Builder → Validator), and make strategic decisions with full session context.
 
 ---
 

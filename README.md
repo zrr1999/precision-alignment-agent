@@ -4,7 +4,7 @@
 
 ## 架构概览
 
-系统采用**三层架构**：Router → Director → Specialist。
+系统采用**路由式三层编排**：Router → Director → Specialist。
 
 ```
 paddle-agent (Router)
@@ -113,7 +113,8 @@ just resume <branch_name> [tool] [additional_prompt]
 |------|------|
 | `roles/` | 规范 Agent 定义（YAML frontmatter + Markdown prompt），唯一真实来源 |
 | `roles.toml` | role-forge 多平台配置 |
-| `.agents/skills/` | 平台无关的 skills |
+| `skills/` | 仓库内维护的本地 skills 源码与脚本 |
+| `.agents/skills/` | Agent 运行时可见的 skills 目录（包含本地镜像与已安装 skills） |
 | `knowledge/` | 人工维护的知识库（Agent 只读） |
 | `.opencode/`、`.claude/` | 由 [role-forge](https://github.com/zrr1999/role-forge) 生成的平台配置，勿手动编辑 |
 | `.paddle-pilot/` | 运行时数据（repos、worktree、sessions、config、memory） |
