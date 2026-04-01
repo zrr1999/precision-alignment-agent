@@ -15,6 +15,11 @@ hooks = [
 ]
 
 [[repos]]
+repo = "https://github.com/zrr1999/zendev"
+rev = "v0.0.4"
+hooks = [{ id = "zendev-commit-msg" }]
+
+[[repos]]
 repo = "https://github.com/tombi-toml/tombi-pre-commit"
 rev = "v0.7.28"
 hooks = [

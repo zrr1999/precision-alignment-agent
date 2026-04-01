@@ -6,6 +6,10 @@ default:
 # Setup & Configuration
 # ============================================================================
 
+# 安装本地 Git hooks（pre-commit + commit-msg）
+install:
+    uvx prek install --hook-type pre-commit --hook-type commit-msg
+
 # 安装所有依赖
 setup:
     #!/usr/bin/env bash
@@ -76,6 +80,10 @@ setup:
     # --- 生成平台配置 ---
     echo "▶ Generating platform configs..."
     uvx role-forge add "$(pwd)" --project-dir "$(pwd)" -y 2>/dev/null && echo "✔ Platform configs generated" || echo "⚠ role-forge not available, run 'just adapt' later"
+
+    # --- 安装 Git hooks ---
+    echo "▶ Installing git hooks..."
+    just install 2>/dev/null && echo "✔ Git hooks installed" || echo "⚠ Failed to install git hooks"
 
     echo ""
     echo "✔ Setup complete!"

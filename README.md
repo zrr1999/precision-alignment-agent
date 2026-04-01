@@ -66,7 +66,14 @@ just setup
 - `uv`、`bun`、`gh` 等基础环境；
 - `opencode-ai`、`ocx`、`repomix` 等 AI Coding Agent 相关工具；
 - 默认的系统级 skills（paddle-skills、ast-grep、repomix-explorer 等）；
+- 本仓库本地 Git hooks（`pre-commit` + `commit-msg`，其中 `commit-msg` 使用 `zendev` 校验提交标题）；
 - 通过 `role-forge` 生成各平台 Agent 配置。
+
+若只想重新安装 hooks，可单独执行：
+
+```bash
+just install
+```
 
 ### 2. 克隆相关代码仓库
 
@@ -155,6 +162,20 @@ just zellij-attach <branch_name>
 1. 编辑 `roles/{name}.md` 中的规范定义（YAML frontmatter = 元数据，正文 = prompt）
 2. 运行 `just adapt` 重新生成各平台配置
 3. **不要直接编辑** `.opencode/` 或 `.claude/` 下的生成文件
+
+### 提交规范
+
+本仓库通过 `zendev-commit-msg` 校验 commit title；默认在 `just setup`（或单独执行 `just install`）时安装。
+
+提交标题需要遵循 `emoji + conventional commit` 格式，例如：
+
+```text
+✨ feat: add zellij runtime metadata
+♻️ refactor: refresh Paddle Pilot branding
+📝 docs: update README
+```
+
+Git 自动生成的 `Merge`、`Revert`、`fixup!`、`squash!` 消息仍然允许通过。
 
 ## 许可证
 
