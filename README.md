@@ -90,7 +90,7 @@ just setup-repos <your_github_username>
 创建 worktree、编译安装 Paddle、启动 Agent：
 
 ```bash
-just start <branch_name> [tool] [additional_prompt]
+just start <branch_name> [tool] [additional_prompt] [runtime]
 ```
 
 ### 恢复任务
@@ -98,10 +98,41 @@ just start <branch_name> [tool] [additional_prompt]
 复用现有 worktree 和构建产物，继续之前的工作：
 
 ```bash
-just resume <branch_name> [tool] [additional_prompt]
+just resume <branch_name> [tool] [additional_prompt] [runtime]
 ```
 
 `tool` 参数支持 `opencode`（默认）、`claude`、`ducc`、`copilot`。
+
+`runtime` 参数支持：
+
+- `direct`（默认）：保持当前行为，在当前终端直接启动 agent；
+- `zellij`：把 agent 启动到独立的 Zellij session/pane 中，便于后续 attach / reattach。
+
+### Zellij runtime（实验性）
+
+若你安装了 Zellij `0.44+`，可以把任务运行在 Zellij 里：
+
+```bash
+just start <branch_name> opencode "" zellij
+just resume <branch_name> opencode "" zellij
+```
+
+启动后，Paddle Pilot 会把 runtime 元数据写到：
+
+```text
+.paddle-pilot/sessions/<branch_name>/runtime.json
+```
+
+其中包含当前 runtime、tool、worktree、prompt 文件、以及最近一次 zellij session / pane 信息。
+
+常用命令：
+
+```bash
+just zellij-runtime-status <branch_name>
+just zellij-attach <branch_name>
+```
+
+这一步先解决“可恢复会话”和“稳定定位 pane”的基础能力；HTTPS attach、只读 watch、实时 subscribe 等更强编排能力会在后续阶段继续补齐。
 
 路径可通过环境变量覆盖：`PADDLE_PATH`、`PYTORCH_PATH`、`PADDLETEST_PATH`、`PADDLEAPITEST_PATH`。
 

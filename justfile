@@ -535,16 +535,25 @@ _launch-agent tool agent prompt branch_name runtime worktree_dir:
             PANE_NAME="$(sanitize_name "{{ agent }}-{{ tool }}-$(date +%Y%m%d-%H%M%S)")"
 
             if ! zellij list-sessions 2>/dev/null | tr -d '\r' | grep -Fx "$SESSION_NAME" >/dev/null; then
-                echo "▶ Creating detached zellij session: $SESSION_NAME"
-                zellij --session "$SESSION_NAME" -d
+                echo "▶ Creating background zellij session: $SESSION_NAME"
+                zellij attach --create-background "$SESSION_NAME" >/dev/null
             fi
 
-            echo "▶ Launching agent in zellij session '$SESSION_NAME'..."
-            zellij --session "$SESSION_NAME" run --cwd "{{ worktree_dir }}" --name "$PANE_NAME" -- bash -lc "$AGENT_COMMAND" >/dev/null
+            echo "▶ Launching agent in detached zellij session '$SESSION_NAME'..."
+            # Use the action API to add a pane to an existing detached session without attaching.
+            PANE_ID="$(zellij --session "$SESSION_NAME" action new-pane --cwd "{{ worktree_dir }}" --name "$PANE_NAME" | tr -d '\r')"
+            if [ -n "$PANE_ID" ]; then
+                zellij --session "$SESSION_NAME" action paste --pane-id "$PANE_ID" "$AGENT_COMMAND" >/dev/null
+                zellij --session "$SESSION_NAME" action send-keys --pane-id "$PANE_ID" "Enter" >/dev/null
+            fi
 
-            read -r PANE_ID TAB_ID < <(
-                zellij --session "$SESSION_NAME" action list-panes --json | python -c 'import json, sys; pane_name = sys.argv[1]; panes = json.load(sys.stdin); match = next((pane for pane in panes if pane.get("title") == pane_name), None); prefix = "plugin" if match and match.get("is_plugin") else "terminal"; tab_id = "" if not match or match.get("tab_id") is None else match.get("tab_id"); print("" if match is None else f"{prefix}_{match['"'"'id'"'"']} {tab_id}")' "$PANE_NAME"
-            )
+            if [ -z "$PANE_ID" ]; then
+                read -r PANE_ID TAB_ID < <(
+                    { zellij --session "$SESSION_NAME" action list-panes --json 2>/dev/null || true; } | python -c 'import json, sys; pane_name = sys.argv[1]; raw = sys.stdin.read().strip(); panes = json.loads(raw) if raw else []; match = next((pane for pane in panes if pane.get("title") == pane_name), None); prefix = "plugin" if match and match.get("is_plugin") else "terminal"; tab_id = "" if not match or match.get("tab_id") is None else match.get("tab_id"); print("" if match is None else f"{prefix}_{match['"'"'id'"'"']} {tab_id}")' "$PANE_NAME"
+                )
+            else
+                TAB_ID="$({ zellij --session "$SESSION_NAME" action list-panes --json 2>/dev/null || true; } | python -c 'import json, sys; pane_id = sys.argv[1]; raw = sys.stdin.read().strip(); panes = json.loads(raw) if raw else []; match = next((pane for pane in panes if ("plugin_" if pane.get("is_plugin") else "terminal_") + str(pane["id"]) == pane_id), None); print("" if not match or match.get("tab_id") is None else match.get("tab_id"))' "$PANE_ID")"
+            fi
 
             export PILOT_ZELLIJ_SESSION_NAME="$SESSION_NAME"
             export PILOT_ZELLIJ_PANE_ID="$PANE_ID"

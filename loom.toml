@@ -8,8 +8,10 @@ next_wait_seconds = 60.0
 next_retries = 5
 executor_command = ""
 offline_after_minutes = 30
-# TODO: resume/reattach-related agent config is still under research.
-# Possible future settings may include explicit resume command templates.
+# Zellij-backed launching currently lives in `just start|resume ... zellij`.
+# Runtime metadata is persisted under `.paddle-pilot/sessions/<branch>/runtime.json`
+# so future executor_command / resume templates can reattach deterministically.
+# TODO: wire explicit loom-side resume/reattach templates once the executor contract is finalized.
 
 [threads]
 default_priority = 50
