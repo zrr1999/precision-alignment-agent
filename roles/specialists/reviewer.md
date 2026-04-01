@@ -56,8 +56,8 @@ Do **not** rely solely on previous reports. Run these checks yourself:
 ### Pre-PR Prep (before invoking the skill's flow)
 
 1. `git status` — ensure working tree is clean.
-2. `git log --oneline -10` — confirm `[PAA]` commits are present.
-3. **Commit hygiene**: If >5 small commits, squash into 1-3 logical commits. Keep `[PAA]` prefix.
+2. `git log --oneline -10` — confirm `[Paddle Pilot]` commits are present.
+3. **Commit hygiene**: If >5 small commits, squash into 1-3 logical commits. Keep the `[Paddle Pilot]` prefix.
 4. **Branch**: Use `paddle-pilot/{branch_name}`. If exists, use `-N` suffix.
 
 ### PR Creation (follow the skill)

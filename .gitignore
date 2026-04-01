@@ -8,4 +8,5 @@
 .agents
 .github/agents/
 .loom/
+.role-forge/
 .tensor-spec/

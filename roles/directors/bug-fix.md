@@ -89,7 +89,7 @@ If debugger cannot reproduce: ask user for more context or adjust environment.
 Each iteration:
 
 1. **@aligner** — exact instructions from debugger's analysis: files, functions, bug to fix, expected outcome. If iteration > 1: include @validator failure patterns.
-2. **@builder** — build, smoke test, commit with `[PAA]` prefix. Simple build errors: Builder fixes. Complex: report back → re-invoke @aligner.
+2. **@builder** — build, smoke test, commit with the `[Paddle Pilot]` prefix. Simple build errors: Builder fixes. Complex: report back → re-invoke @aligner.
 3. **@validator** — two-stage validation:
    - **Stage A — paddleonly**: `just agentic-run-tensorspec-paddleonly`. No crash/segfault/CUDA error. **Must pass before Stage B.**
    - **Stage B — accuracy**: `just agentic-run-tensorspec-accuracy`. Cross-framework comparison.

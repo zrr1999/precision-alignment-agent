@@ -1,5 +1,5 @@
 [project]
-name = "precision-alignment-agent"
+name = "paddle-pilot"
 
 [agent]
 inbox_plan_batch = 10

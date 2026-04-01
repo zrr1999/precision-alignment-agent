@@ -57,7 +57,7 @@ Run at least one smoke test after each build.
 
 After build + smoke test both succeed:
 1. `git add` the changed files
-2. `git commit -m "[PAA] {description}"`
+2. `git commit -m "[Paddle Pilot] {description}"`
 3. Report: commit hash, what was fixed, test results
 
 ## Session Report

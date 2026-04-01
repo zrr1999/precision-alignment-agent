@@ -110,7 +110,7 @@ Using Phase 1 reports + your knowledge brief:
 Each iteration:
 
 1. **@aligner** — exact instructions: files, functions, issue, expected outcome, prior failure patterns (if iteration > 1)
-2. **@builder** — build (`just agentic-paddle-build-and-install`), smoke test, commit with `[PAA]` prefix. Simple build errors: Builder fixes directly. Complex errors: report back → re-invoke @aligner.
+2. **@builder** — build (`just agentic-paddle-build-and-install`), smoke test, commit with the `[Paddle Pilot]` prefix. Simple build errors: Builder fixes directly. Complex errors: report back → re-invoke @aligner.
 3. **@validator** — run PaddleAPITest. Read report: total, passed, failed, patterns.
 4. **@benchmarker** (optional, final iteration or performance concern) — before/after benchmarks, compare against baseline.
 5. **Assess** (you do this):

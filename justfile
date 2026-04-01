@@ -75,7 +75,7 @@ setup:
 
     # --- 生成平台配置 ---
     echo "▶ Generating platform configs..."
-    uvx role-forge render 2>/dev/null && echo "✔ Platform configs generated" || echo "⚠ role-forge not available, run 'just adapt' later"
+    uvx role-forge add "$(pwd)" --project-dir "$(pwd)" -y 2>/dev/null && echo "✔ Platform configs generated" || echo "⚠ role-forge not available, run 'just adapt' later"
 
     echo ""
     echo "✔ Setup complete!"
@@ -83,7 +83,7 @@ setup:
 
 # 从 roles/ 适配生成各平台配置
 adapt:
-    uvx role-forge render
+    uvx role-forge add "$(pwd)" --project-dir "$(pwd)" -y
 
 # 更新配置和 skills（adapt + skills update）
 update:
@@ -171,18 +171,18 @@ setup-repos username="":
 start branch_name tool="opencode" additional_prompt="" runtime="direct":
     #!/usr/bin/env bash
     set -euo pipefail
-    PAA_ROOT=$(pwd)
+    PILOT_ROOT=$(pwd)
 
     _paths="$(just _resolve-paths)" || { echo "❌ Path resolution failed" >&2; exit 1; }
     eval "$_paths"
 
-    _wt="$(just _setup-worktree "$PAA_ROOT" "$PADDLE_PATH" "{{ branch_name }}")" || { echo "❌ Worktree setup failed" >&2; exit 1; }
+    _wt="$(just _setup-worktree "$PILOT_ROOT" "$PADDLE_PATH" "{{ branch_name }}")" || { echo "❌ Worktree setup failed" >&2; exit 1; }
     eval "$_wt"
 
     just agentic-venv-setup "$PADDLE_PATH"
     just agentic-paddle-build-and-install "$PADDLE_PATH"
 
-    cd "$PAA_ROOT"
+    cd "$PILOT_ROOT"
     AGENT="paddle-agent"
     ADDITIONAL_PROMPT={{ quote(additional_prompt) }}
     PROMPT="[paddle_path=$PADDLE_PATH, \
@@ -200,12 +200,12 @@ start branch_name tool="opencode" additional_prompt="" runtime="direct":
 resume branch_name tool="opencode" additional_prompt="" runtime="direct":
     #!/usr/bin/env bash
     set -euo pipefail
-    PAA_ROOT=$(pwd)
+    PILOT_ROOT=$(pwd)
 
     _paths="$(just _resolve-paths)" || { echo "❌ Path resolution failed" >&2; exit 1; }
     eval "$_paths"
 
-    _wt="$(just _resume-worktree "$PAA_ROOT" "$PADDLE_PATH" "{{ branch_name }}")" || { echo "❌ Worktree resume failed" >&2; exit 1; }
+    _wt="$(just _resume-worktree "$PILOT_ROOT" "$PADDLE_PATH" "{{ branch_name }}")" || { echo "❌ Worktree resume failed" >&2; exit 1; }
     eval "$_wt"
 
     if [ ! -d "$VENV_PATH" ]; then
@@ -222,7 +222,7 @@ resume branch_name tool="opencode" additional_prompt="" runtime="direct":
         just agentic-paddle-build-and-install "$PADDLE_PATH"
     fi
 
-    cd "$PAA_ROOT"
+    cd "$PILOT_ROOT"
     AGENT="paddle-agent"
     ADDITIONAL_PROMPT={{ quote(additional_prompt) }}
     PROMPT="[paddle_path=$PADDLE_PATH, \
@@ -269,11 +269,11 @@ _resolve-paths:
 # If worktree already exists, asks user whether to create a fresh branch (default: No).
 #   - No:  reuse existing worktree, WORKTREE_CONTEXT contains resume notice for agent.
 #   - Yes: create fresh branch (clean git tracking), optionally keep build/ and .venv/.
-_setup-worktree PAA_ROOT PADDLE_SRC branch_name:
+_setup-worktree PILOT_ROOT PADDLE_SRC branch_name:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    WORKTREE_DIR="{{ PAA_ROOT }}/.paddle-pilot/worktree/Paddle_{{ branch_name }}"
+    WORKTREE_DIR="{{ PILOT_ROOT }}/.paddle-pilot/worktree/Paddle_{{ branch_name }}"
     BRANCH_NAME="paddle-pilot/{{ branch_name }}"
     WORKTREE_CONTEXT=""
 
@@ -281,7 +281,7 @@ _setup-worktree PAA_ROOT PADDLE_SRC branch_name:
         git rev-parse --verify --quiet "$1" >/dev/null
     }
 
-    mkdir -p "{{ PAA_ROOT }}/.paddle-pilot/worktree"
+    mkdir -p "{{ PILOT_ROOT }}/.paddle-pilot/worktree"
 
     # Sync base branch
     cd "{{ PADDLE_SRC }}"
@@ -365,18 +365,18 @@ _setup-worktree PAA_ROOT PADDLE_SRC branch_name:
     printf 'VENV_PATH=%q\n' "$WORKTREE_DIR/.venv"
     printf 'WORKTREE_CONTEXT=%q\n' "$WORKTREE_CONTEXT"
 
-_resume-worktree PAA_ROOT PADDLE_SRC branch_name:
+_resume-worktree PILOT_ROOT PADDLE_SRC branch_name:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    WORKTREE_DIR="{{ PAA_ROOT }}/.paddle-pilot/worktree/Paddle_{{ branch_name }}"
+    WORKTREE_DIR="{{ PILOT_ROOT }}/.paddle-pilot/worktree/Paddle_{{ branch_name }}"
     BRANCH_NAME="paddle-pilot/{{ branch_name }}"
 
     branch_exists() {
         git rev-parse --verify --quiet "$1" >/dev/null
     }
 
-    mkdir -p "{{ PAA_ROOT }}/.paddle-pilot/worktree"
+    mkdir -p "{{ PILOT_ROOT }}/.paddle-pilot/worktree"
 
     cd "{{ PADDLE_SRC }}"
     git switch -c paddle-pilot/develop 2>/dev/null || git switch paddle-pilot/develop
@@ -476,7 +476,7 @@ _launch-agent tool agent prompt branch_name runtime worktree_dir:
         raw="${raw#-}"
         raw="${raw%-}"
         if [ -z "$raw" ]; then
-            raw="paa"
+            raw="pilot"
         fi
         printf '%s' "$raw"
     }
@@ -503,22 +503,22 @@ _launch-agent tool agent prompt branch_name runtime worktree_dir:
     }
 
     write_runtime_file() {
-        python -c 'import json, os, sys; data = {"runtime": os.environ["PAA_RUNTIME"], "tool": os.environ["PAA_TOOL"], "agent": os.environ["PAA_AGENT"], "branch_name": os.environ["PAA_BRANCH_NAME"], "worktree_dir": os.environ["PAA_WORKTREE_DIR"], "prompt_file": os.environ["PAA_PROMPT_FILE"], "launch_command": os.environ["PAA_LAUNCH_COMMAND"], "launched_at": os.environ["PAA_LAUNCHED_AT"], "zellij_session_name": os.environ.get("PAA_ZELLIJ_SESSION_NAME") or None, "zellij_pane_id": os.environ.get("PAA_ZELLIJ_PANE_ID") or None, "zellij_tab_id": int(os.environ["PAA_ZELLIJ_TAB_ID"]) if os.environ.get("PAA_ZELLIJ_TAB_ID") else None, "pane_name": os.environ.get("PAA_PANE_NAME") or None}; open(sys.argv[1], "w", encoding="utf-8").write(json.dumps(data, ensure_ascii=False, indent=2) + "\n")' "$RUNTIME_FILE"
+        python -c 'import json, os, sys; data = {"runtime": os.environ["PILOT_RUNTIME"], "tool": os.environ["PILOT_TOOL"], "agent": os.environ["PILOT_AGENT"], "branch_name": os.environ["PILOT_BRANCH_NAME"], "worktree_dir": os.environ["PILOT_WORKTREE_DIR"], "prompt_file": os.environ["PILOT_PROMPT_FILE"], "launch_command": os.environ["PILOT_LAUNCH_COMMAND"], "launched_at": os.environ["PILOT_LAUNCHED_AT"], "zellij_session_name": os.environ.get("PILOT_ZELLIJ_SESSION_NAME") or None, "zellij_pane_id": os.environ.get("PILOT_ZELLIJ_PANE_ID") or None, "zellij_tab_id": int(os.environ["PILOT_ZELLIJ_TAB_ID"]) if os.environ.get("PILOT_ZELLIJ_TAB_ID") else None, "pane_name": os.environ.get("PILOT_PANE_NAME") or None}; open(sys.argv[1], "w", encoding="utf-8").write(json.dumps(data, ensure_ascii=False, indent=2) + "\n")' "$RUNTIME_FILE"
     }
 
     AGENT_COMMAND="$(build_agent_command "{{ tool }}" "{{ agent }}" "$PROMPT_FILE")"
-    export PAA_RUNTIME="{{ runtime }}"
-    export PAA_TOOL="{{ tool }}"
-    export PAA_AGENT="{{ agent }}"
-    export PAA_BRANCH_NAME="{{ branch_name }}"
-    export PAA_WORKTREE_DIR="{{ worktree_dir }}"
-    export PAA_PROMPT_FILE="$PROMPT_FILE"
-    export PAA_LAUNCH_COMMAND="$AGENT_COMMAND"
-    export PAA_LAUNCHED_AT="$(date -Iseconds)"
-    export PAA_ZELLIJ_SESSION_NAME=""
-    export PAA_ZELLIJ_PANE_ID=""
-    export PAA_ZELLIJ_TAB_ID=""
-    export PAA_PANE_NAME=""
+    export PILOT_RUNTIME="{{ runtime }}"
+    export PILOT_TOOL="{{ tool }}"
+    export PILOT_AGENT="{{ agent }}"
+    export PILOT_BRANCH_NAME="{{ branch_name }}"
+    export PILOT_WORKTREE_DIR="{{ worktree_dir }}"
+    export PILOT_PROMPT_FILE="$PROMPT_FILE"
+    export PILOT_LAUNCH_COMMAND="$AGENT_COMMAND"
+    export PILOT_LAUNCHED_AT="$(date -Iseconds)"
+    export PILOT_ZELLIJ_SESSION_NAME=""
+    export PILOT_ZELLIJ_PANE_ID=""
+    export PILOT_ZELLIJ_TAB_ID=""
+    export PILOT_PANE_NAME=""
 
     case "{{ runtime }}" in
         direct)
@@ -531,7 +531,7 @@ _launch-agent tool agent prompt branch_name runtime worktree_dir:
                 exit 1
             fi
 
-            SESSION_NAME="$(sanitize_name "paa-{{ branch_name }}")"
+            SESSION_NAME="$(sanitize_name "paddle-pilot-{{ branch_name }}")"
             PANE_NAME="$(sanitize_name "{{ agent }}-{{ tool }}-$(date +%Y%m%d-%H%M%S)")"
 
             if ! zellij list-sessions 2>/dev/null | tr -d '\r' | grep -Fx "$SESSION_NAME" >/dev/null; then
@@ -546,10 +546,10 @@ _launch-agent tool agent prompt branch_name runtime worktree_dir:
                 zellij --session "$SESSION_NAME" action list-panes --json | python -c 'import json, sys; pane_name = sys.argv[1]; panes = json.load(sys.stdin); match = next((pane for pane in panes if pane.get("title") == pane_name), None); prefix = "plugin" if match and match.get("is_plugin") else "terminal"; tab_id = "" if not match or match.get("tab_id") is None else match.get("tab_id"); print("" if match is None else f"{prefix}_{match['"'"'id'"'"']} {tab_id}")' "$PANE_NAME"
             )
 
-            export PAA_ZELLIJ_SESSION_NAME="$SESSION_NAME"
-            export PAA_ZELLIJ_PANE_ID="$PANE_ID"
-            export PAA_ZELLIJ_TAB_ID="$TAB_ID"
-            export PAA_PANE_NAME="$PANE_NAME"
+            export PILOT_ZELLIJ_SESSION_NAME="$SESSION_NAME"
+            export PILOT_ZELLIJ_PANE_ID="$PANE_ID"
+            export PILOT_ZELLIJ_TAB_ID="$TAB_ID"
+            export PILOT_PANE_NAME="$PANE_NAME"
             write_runtime_file
 
             echo "✔ Zellij session ready: $SESSION_NAME"

@@ -36,7 +36,7 @@ Search in phases. Stop early if you already have 5+ high-relevance PRs.
 
 ### Phase A — `gh_grep` on PaddlePaddle/Paddle
 
-Keywords: `precision`, `accuracy`, `[PAA]`, `[Precision Depth Alignment]`, plus related API names (e.g. for `sin`, also search `cos`, `tan`).
+Keywords: `precision`, `accuracy`, `[Paddle Pilot]`, historical `[PAA]`, `[Precision Depth Alignment]`, plus related API names (e.g. for `sin`, also search `cos`, `tan`).
 
 ### Phase B — Web search expansion
 
